@@ -1,6 +1,4 @@
 # BM3-Design-PyRosetta
-# THE PLAN
-**Throw science at the wall and see what sticks**
 
 ## Long Term
 #### Aim

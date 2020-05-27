@@ -67,10 +67,10 @@ def main():
     pyrosetta.init()
 
     # get target and template
-    template_file = PickStructure('../../data/clean/')
+    template_file = '../../data/clean/1jme_clean.pdb' # wt???
     target_file = PickStructure('../../data/clean/')
     print('\x1b[31m') #red
-    print(f'Target = {target_file} \t template = {template_file}')
+    print(f'Target = {os.path.basename(target_file)} \t template = {os.path.basename(template_file)}')
     template = pyrosetta.pose_from_pdb(template_file)
     target = pyrosetta.pose_from_pdb(target_file)
 

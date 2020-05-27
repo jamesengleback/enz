@@ -1,5 +1,8 @@
 First attempt at a folding evaluation pipeline
 
+### to do
+* add folding methods to Folds.py, input format: fold(pose), no return object
+
 ### Aim:
 * evaluate the accuracy and speed of different folding algorithms on known bm3 structures
 * This pipeline will only start from BM3 WT, I'm considering starting from mutants in the future
@@ -9,7 +12,7 @@ First attempt at a folding evaluation pipeline
 * renumber the structures sequence and find mutations relative to wt
 * make pose from wt
 * copy wt pose and make mutations -> mutant pose
-* fold - any method
+* fold - import any method from Folds.py
 * score - ca rmsd + side chain positions between predicted and actual mutant structure
 
 

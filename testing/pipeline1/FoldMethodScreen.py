@@ -41,7 +41,9 @@ def Score(target, mutant):
 
 def PickStructure(path):
     files = [i for i in os.listdir(path) if '.pdb' in i]
-    return random.sample(files,1)
+    folder = os.dirname(path)
+    pick = random.sample(files,1)[0]
+    return os.path.join(folder, pick)
 
 def PackSideChainsSimple(pose):
     print('\x1b[31m') #red

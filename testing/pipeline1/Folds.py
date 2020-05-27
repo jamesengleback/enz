@@ -1,5 +1,5 @@
 import pyrosetta
-
+from tqdm import tqdm
 
 def PackSideChainsSimple(pose):
     print('\x1b[31m') #red

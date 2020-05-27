@@ -4,10 +4,30 @@ import re
 from tqdm import tqdm
 import os
 import random
+import argparse
 
 import pyrosetta
 from pyrosetta.rosetta.core.scoring import CA_rmsd, rms_at_all_corresponding_atoms
 
+import Folds
+
+def PackSideChainsSimple(pose):
+    print('\x1b[31m') #red
+    print('Packing side chains')
+    task_pack = pyrosetta.standard_packer_task(pose)
+    task_pack.or_include_current(True)  # considers the original sidechains
+    sfxn = pyrosetta.pyrosetta.get_fa_scorefxn()
+    pack_mover =  pyrosetta.rosetta.protocols.minimization_packing.PackRotamersMover(sfxn, task_pack)
+    pack_mover.apply(pose)
+
+def BackrubMinimise(pose):
+    backrub = pyrosetta.rosetta.protocols.backrub.BackrubMover()
+    minimize = pyrosetta.rosetta.protocols.minimization_packing.MinMover()
+    print('\x1b[31m')
+    print('Backrub + minimise')
+    for i in tqdm(range(100)):
+        backrub.apply(pose)
+        minimize.apply(pose)
 def renumber(s1,s2, return_both = False):
     alns = pairwise2.align.globalxx(s1,s2,penalize_end_gaps = False,
     one_alignment_only=True)
@@ -63,7 +83,7 @@ def BackrubMinimise(pose):
         backrub.apply(pose)
         minimize.apply(pose)
 
-def main():
+def main(args):
     pyrosetta.init()
 
     # get target and template
@@ -84,12 +104,20 @@ def main():
     print('score = ',Score(target, mutant_pose))
 
     # test fold here
+    # keeping folds in Folds.py to avoid clutter
+    # imported them, access with this dictionary
+    FoldMethods = {'backrub':Folds.BackrubMinimise,
+    'sidechains':Folds.PackSideChainsSimple}
+    fold = FoldMethods[args.fold]
     print('\x1b[31m') #red
-    BackrubMinimise(mutant_pose)
+    fold(mutant_pose)
 
     # score after
     print('\x1b[31m') #red
     print('score = ',Score(target, mutant_pose))
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f', name = 'fold')
+    args = parser.parse_args()
+    main(args)

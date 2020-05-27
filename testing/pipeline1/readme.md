@@ -18,3 +18,9 @@ First attempt at a folding evaluation pipeline
 * I've been randomly sampling from the clean pdb structures (using a relative path in the script) and renumbering according to the template. Should renumber according to wt sequence
 * Folding - need to find a way to import folding methods, for now, just using backrub as a placeholder.
 * Scoring - ca_rmsd is easy enough, need to find way to score sidechain similarity.
+
+### Ideas
+* Argparser - choose what folding method with shortcuts
+
+### Questions
+* **Renumbering:** should we renumber according to wt sequence or whatever's in the template structure - interprability thing.

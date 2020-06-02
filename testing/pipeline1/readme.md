@@ -27,3 +27,4 @@ First attempt at a folding evaluation pipeline
 
 ### Questions
 * **Renumbering:** should we renumber according to wt sequence or whatever's in the template structure - interprability thing.
+alignments - see here http://scikit-bio.org/docs/0.2.0/alignment.html

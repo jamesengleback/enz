@@ -11,23 +11,6 @@ from pyrosetta.rosetta.core.scoring import CA_rmsd, rms_at_all_corresponding_ato
 
 import Folds
 
-def PackSideChainsSimple(pose):
-    print('\x1b[31m') #red
-    print('Packing side chains')
-    task_pack = pyrosetta.standard_packer_task(pose)
-    task_pack.or_include_current(True)  # considers the original sidechains
-    sfxn = pyrosetta.pyrosetta.get_fa_scorefxn()
-    pack_mover =  pyrosetta.rosetta.protocols.minimization_packing.PackRotamersMover(sfxn, task_pack)
-    pack_mover.apply(pose)
-
-def BackrubMinimise(pose):
-    backrub = pyrosetta.rosetta.protocols.backrub.BackrubMover()
-    minimize = pyrosetta.rosetta.protocols.minimization_packing.MinMover()
-    print('\x1b[31m')
-    print('Backrub + minimise')
-    for i in tqdm(range(100)):
-        backrub.apply(pose)
-        minimize.apply(pose)
 def renumber(s1,s2, return_both = False):
     alns = pairwise2.align.globalxx(s1,s2,penalize_end_gaps = False,
     one_alignment_only=True)

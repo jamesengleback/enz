@@ -1,6 +1,15 @@
 import pyrosetta
 from tqdm import tqdm
 
+def PackChainsMini(pose):
+    # test
+    movemap = pyrosetta.MoveMap()
+    movemap.set_bb(True)
+    nmoves = 10
+    kT = 1.0
+    smallmover = SmallMover(movemap, nmoves, kT)
+    smallmover.apply(pose)
+
 def PackSideChainsSimple(pose):
     # takes ages
     print('\x1b[31m') #red

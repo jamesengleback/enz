@@ -82,7 +82,7 @@ def main(args):
     diff(mutant_pose.sequence(), template_pose.sequence()) #check, takes time though
 
     # fold
-    Folds.PackSideChainsSimple(mutant_pose)
+    Folds.PackChainsMini(mutant_pose)
 
     mutant_pose.dump_pdb(f"../tmp/BM3-{args.mutations.replace(' ','-')}.pdb")
 

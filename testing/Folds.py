@@ -5,7 +5,7 @@ def PackChainsMini(pose):
     # test
     movemap = pyrosetta.MoveMap()
     movemap.set_bb(True)
-    nmoves = 10
+    nmoves = 5
     kT = 1.0
     smallmover = pyrosetta.rosetta.protocols.simple_moves.SmallMover(movemap, nmoves, kT)
     smallmover.apply(pose)

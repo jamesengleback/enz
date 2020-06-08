@@ -2,6 +2,7 @@ import pyrosetta
 from tqdm import tqdm
 
 def PackSideChainsSimple(pose):
+    # takes ages
     print('\x1b[31m') #red
     print('Packing side chains')
     task_pack = pyrosetta.standard_packer_task(pose)

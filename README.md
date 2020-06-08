@@ -1,5 +1,5 @@
 # BM3-Design-PyRosetta
-
+# I ❤️ BM3
 ## Long Term
 #### Aim
 We want to predict roughly how different mutants of BM3 will interact with whatever substrate we give them. [**Computational methods and tools to predict cytochrome P450 metabolism for drug discovery.**](https://www.ncbi.nlm.nih.gov/pubmed/30471192?otool=igbumllib) mentions a couple of methods, including docking. For our job, we'll need:

@@ -70,30 +70,28 @@ def ParseMutation(m):
 def MakeMutations(pose,mutations):
     for i in mutations:
         print('\x1b[31m') #red
-        print(i,mutations[i])
+        print(pose.sequence()[i],i,mutations[i])
         pyrosetta.toolbox.mutate_residue(pose, i,mutations[i])
 
 def main(args):
-    #pyrosetta.init()
+    pyrosetta.init()
     # get template
     template_file = '../../data/clean/1jme_clean.pdb' # wt???
     print('\x1b[31m') #red
     print(f'Template = {os.path.basename(template_file)}')
-    #template = pyrosetta.pose_from_pdb(template_file)
+    template = pyrosetta.pose_from_pdb(template_file)
 
     mutations = dict([ParseMutation(i) for i in args.mutations.split()])
-    print(mutations)
 
     # make mutant from template
-    #mutant_pose = pyrosetta.Pose()
-    #mutant_pose.assign(template)
+    mutant_pose = pyrosetta.Pose()
+    mutant_pose.assign(template)
 
     #mutations = MapMutations(mutant_pose.sequence())
-    #MakeMutations(mutant_pose, mutations)
-    #for i in range(0,len(template.sequence())-50,50):
-    #    print()
-    #    print(template.sequence()[i:i+50])
-    #    print(mutant_pose.sequence()[i:i+50])
+    MakeMutations(mutant_pose, mutations)
+    for idx, (i,j) in enumerate(zip(template.sequence(), mutant_pose.sequence())):
+        if i != j:
+            print(idx, i,j)
 
 
     # imported them, access with this dictionary

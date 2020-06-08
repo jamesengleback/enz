@@ -1,21 +1,19 @@
 # BM3-Design-PyRosetta
 # I ❤️ BM3
-## Long Term
-#### Aim
-We want to predict roughly how different mutants of BM3 will interact with whatever substrate we give them. [**Computational methods and tools to predict cytochrome P450 metabolism for drug discovery.**](https://www.ncbi.nlm.nih.gov/pubmed/30471192?otool=igbumllib) mentions a couple of methods, including docking. For our job, we'll need:
-* Structure Prediction
-* Docking
-* A good way to score/interpret the docking
-* A program that pipes mutation|structure prediction|docking to find a useable mutant
+# Based on [**Small-molecule ligand docking into comparative models with Rosetta (2013)**](https://github.com/jamesengleback/BM3-Design-PyRosetta/blob/master/rosetta-ligand-dock-2013.pdf)
 
-## Short Term
-### Structure Prediction
-**Aim:** We want a program that (quickly 🤞 ) predicts the structure of a mutant.
+# Aim - BM3 structure prediction and Docking
+## Structure Prediction
+* **Renumbering** - the ```.pdb``` templates have missing residues, so they are aligned to the full sequence and map mutations in the sequence to the structure.
+* **Folding**  - side chain packing is most important, also loop modelling for flexible regions (82-92, 435-439).
+* **Docking** - autodock and rosetta docking are options. **Rosetta docking:** better performance **autodock:** 2-3 times faster.
 
-I think we can rule out *ab-initio* folding for now because it takes so long! Plus we have plenty of structures to work from.
+ [**Computational methods and tools to predict cytochrome P450 metabolism for drug discovery**](https://www.ncbi.nlm.nih.gov/pubmed/30471192?otool=igbumllib) talks about using docking and other methods to predict P450 metabolites.
 
-I'm not sure what the right method would be, but we could narrow it down to a handful and test all of them.
-
-**Testing:** For now, I think a sensible way to test our algorithms is to try to predict known strucutures, and score based on that. alpha carbon (backbone) root mean squared devation (RMSD) has a function built into pyrosetta, but it won't take into account the side chains, so we'll need to think about that 🤔.
-
-**Format of our scripts:** It would be good if the folding part of our scripts are contained in a function, so then we can import them into other scripts and test 'em.
+ # Folders
+* **data** - BM3 fastas, ```.pdbs``` and clean ```.pdbs``` where water and ligands are removed (except heme).
+* **testing** - testing folding methods
+* **tools** - useful bits # todo - put renumerator here
+* **tmp** - temporary
+* **folding** - folding methods
+* **docking** - docking

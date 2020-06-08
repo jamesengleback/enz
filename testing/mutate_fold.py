@@ -84,7 +84,7 @@ def main(args):
     # fold
     Folds.PackSideChainsSimple(mutant_pose)
 
-    mutant_pose.dump_pdb(f"BM3-{args.mutations.replace(' ','')}.pdb")
+    mutant_pose.dump_pdb(f"../tmp/BM3-{args.mutations.replace(' ','')}.pdb")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

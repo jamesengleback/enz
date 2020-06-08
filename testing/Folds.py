@@ -3,11 +3,11 @@ from tqdm import tqdm
 
 def PackChainsMini(pose):
     # test
-    movemap = pyrosetta.MoveMap()
-    movemap.set_bb(True)
-    nmoves = 5
-    kT = 1.0
-    smallmover = pyrosetta.rosetta.protocols.simple_moves.SmallMover(movemap, nmoves, kT)
+    #movemap = pyrosetta.MoveMap()
+    #movemap.set_bb(True)
+    #nmoves = 5
+    #kT = 1.0
+    smallmover = pyrosetta.rosetta.protocols.simple_moves.SmallMover()
     smallmover.apply(pose)
 
 def PackSideChainsSimple(pose):

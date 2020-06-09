@@ -18,6 +18,9 @@
 * **docking** - autodock is easiest - try first
 
 # Packages
+
+I've saved an environment ```environment.yml``` run ```conda env create -f environment.yml``` to copy it, ```conda activate bm3``` to activate, ```conda deactivate``` to deactivate.
+
 [**Pyrosetta**](http://www.pyrosetta.org/dow) - folding and docking
 ```
 conda install pyrosetta -c  https://levinthal:paradox@conda.graylab.jhu.edu

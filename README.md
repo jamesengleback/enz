@@ -32,3 +32,21 @@ conda install -c https://conda.anaconda.org/biocore scikit-bio
 ```
 conda install -c oddt oddt
 ```
+
+# todo
+
+## folding
+- sidechain repacking - restrict to active site
+- loop remodelling (82-92, 435-439)
+- score functions - which
+
+# docking
+- set up autodock script with odt
+- rosetta docking
+
+## bits
+- save conda env + leave instructions
+- move tesing tools into tools
+- clean testing
+- link https papers
+- compare score functions

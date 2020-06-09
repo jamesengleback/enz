@@ -16,3 +16,19 @@
 * **tmp** - temporary
 * **folding** - folding methods
 * **docking** - autodock is easiest - try first
+
+# Packages
+[**Pyrosetta**](http://www.pyrosetta.org/dow) - folding and docking
+```
+conda install pyrosetta -c  https://levinthal:paradox@conda.graylab.jhu.edu
+```
+
+[**scikit-bio**](http://scikit-bio.org/) - alignment
+```
+conda install -c https://conda.anaconda.org/biocore scikit-bio
+```
+
+[**ODDT - open drug discovery toolkit**](https://github.com/oddt/oddt)  paper [**docs**](https://oddt.readthedocs.io/en/latest/)
+```
+conda install -c oddt oddt
+```

@@ -1,6 +1,6 @@
 # BM3-Design-PyRosetta
 # I ❤️ BM3
-# Based on [**Small-molecule ligand docking into comparative models with Rosetta (2013)**](https://github.com/jamesengleback/BM3-Design-PyRosetta/blob/master/rosetta-ligand-dock-2013.pdf)
+# Based on [**Small-molecule ligand docking into comparative models with Rosetta (2013)**](https://github.com/jamesengleback/BM3-Design-PyRosetta/blob/master/docs/rosetta-ligand-dock-2013.pdf)
 
 # Aim - BM3 structure prediction and Docking Tool
 * **Renumbering** - the ```.pdb``` templates have missing residues, so they are aligned to the full sequence and map mutations in the sequence to the structure.
@@ -9,16 +9,16 @@
 
  [**Computational methods and tools to predict cytochrome P450 metabolism for drug discovery**](https://www.ncbi.nlm.nih.gov/pubmed/30471192?otool=igbumllib) talks about using docking and other methods to predict P450 hydroxylation sites.
 
- # Folders
+# Folders
 * **data** - BM3 fastas, ```.pdbs``` and clean ```.pdbs``` where water and ligands are removed (except heme).
 * **testing** - testing folding methods
 * **tools** - useful bits # todo - put renumerator here
 * **tmp** - temporary
 * **folding** - folding methods
 * **docking** - autodock is easiest - try first
+- **docs** - documentation for packages + papers
 
 # Packages
-
 I've saved an environment ```environment.yml``` run ```conda env create -f environment.yml``` to copy it, ```conda activate bm3``` to activate, ```conda deactivate``` to deactivate.
 
 [**Pyrosetta**](http://www.pyrosetta.org/dow) - folding and docking
@@ -43,7 +43,7 @@ conda install -c oddt oddt
 - loop remodelling (82-92, 435-439)
 - score functions - which
 
-# docking
+## docking
 - set up autodock script with odt
 - rosetta docking
 

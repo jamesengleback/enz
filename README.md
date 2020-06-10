@@ -8,6 +8,12 @@
 * **Docking** - autodock and rosetta docking are options. **Rosetta docking:** better performance **autodock:** 2-3 times faster.
 
  [**Computational methods and tools to predict cytochrome P450 metabolism for drug discovery**](https://www.ncbi.nlm.nih.gov/pubmed/30471192?otool=igbumllib) talks about using docking and other methods to predict P450 hydroxylation sites.
+# progress
+* ```/tools/tools.py - mutate_pose(pose, mm)``` mutates a pose of bm3 accoring to the mutations in ```mm``` -str; format: "a82f 87v l181K"  -not case sensitive, only mutate-to necessary. **packs side chains within 5A of mutation**
+* ```quick_mutate.py``` - mutate bm3 template ```-t``` with mutations ```-x``` and save as ```-o``` usage:
+```bash
+python quick_mutate.py -t data/clean/3ben_clean.pdb -x "a82f f87v l181k i263p" -o output.pdb
+```
 
 # Folders
 * **data** - BM3 fastas, ```.pdbs``` and clean ```.pdbs``` where water and ligands are removed (except heme).

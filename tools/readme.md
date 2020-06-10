@@ -10,7 +10,7 @@
 * ```mutate_pose(pose, mm)``` - pose & mm as above, mapping handled internally, repack radius = 5.0 A returns None, acts inplace
 
 # demo
-I think mutate_pose is most useful, needs to be tested properly, inside, I set the sidechain repack radius to 5A.
+I think ```mutate_pose``` is most useful, needs to be tested properly, inside, I set the sidechain repack radius to 5A.
 ```python
 import tools
 import pyrosetta

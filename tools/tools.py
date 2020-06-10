@@ -81,7 +81,6 @@ def map_mutations(s1,s2, mutations):
     returns mutations mapped to s2
     '''
     renum = map_sequences(s1,s2) #idx_s1:idx_s2
-    print(renum)
     return [(renum[pos], aa) for pos, aa in mutations]
 
 def mutate_pose(pose, mm):

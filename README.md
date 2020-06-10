@@ -51,9 +51,9 @@ autodock-vina - docking
 ```
 conda install -c bioconda autodock-vina
 ```
-OpenBabel - mol file handling
+biopandas - cleaning pdbs
 ```
-conda install -c openbabel openbabel
+conda install -c conda-forge biopandas
 ```
 
 # todo

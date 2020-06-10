@@ -1,49 +1,83 @@
+import skbio
 import pandas as pd
-from Bio import pairwise2
-import re
 
-def FastaToSeries(path):
-    # opens fasta files, outputs series
-    # full fasta string in one cell
-    with open(path,'r') as file:
-        data = file.read()
+def fasta_to_series(path):
+    with open(path, 'r') as f:
+        data = f.read()
     data = [i.split('\n') for i in data.split('>')]
     index = [i[0] for i in data][1:] # first item is ''
     values = [''.join(i[1:]) for i in data][1:] # first item is []
-    df = pd.Series(values, index=index)
-    return df
+    series = pd.Series(values, index=index)
+    return series
 
-def Renumber(s1,s2, return_both = False):
-    # can't handle: 2 mutations in a row
-    # edge cases: 1smi, non bm3 heme  sequences
-    alns = pairwise2.align.globalxx(s1,s2,penalize_end_gaps = False, one_alignment_only=True)
-    s1, s2, _,_,_ = alns[0]
-    s1 = re.sub('\w-\w','',s1)
-    s2 = re.sub('\w-\w','',s2)
-    if return_both:
-        # for testing
-        return dict(enumerate(s1,0)), dict(enumerate(s2,0))
-    else:
-        return dict(enumerate(s2,0))
+def aln(s1,s2):
+    '''align s1 and s2, extract and return aligned sequences'''
+    aln = skbio.alignment.global_pairwise_align_protein(skbio.Protein(s1),skbio.Protein(s2))[0]
+    aln_s1 = ''.join([i.decode() for i in aln[0].values])
+    aln_s2 = ''.join([i.decode() for i in aln.loc[1].values])
+    return aln_s1, aln_s2
+
+def diff(s1,s2):
+    '''
+    return mutations in s2, relative to s1;
+    ignores gaps (indels);
+    returns dict'''
+    aln_s1 ,aln_s2 = aln(s1,s2)
+    m = {}
+    for idx, (i,j) in enumerate(zip(aln_s1 ,aln_s2),1):
+        if i != j and i != '-' and j != '-':
+            m[idx] = {'from':i,'to':j}
+    return m
 
 
-def test_renumber():
-    ref_seq = '''MTIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRL\
-    IKEACDESRFDKNLSQALKFVRDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQ\
-    KWERLNADEHIEVPEDMTRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMVRALDEAMNKLQRANPDDPAYD\
-    ENKRQFQEDIKVMNDLVDKIIADRKASGEQSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTS\
-    GLLSFALYFLVKNPHVLQKAAEEAARVLVDPVPSYKQVKQLKYVGMVLNEALRLWPTAPAFSLYAKEDTVL\
-    GGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPERFENPSAIPQHAFKPFGNGQRACIGQQFALHEATL\
-    VLGMMLKHFDFEDHTNYELDIKETLTLKPEGFVVKAKSKKIPLGGIPSPSTEQSAKKVRKKGC'''.replace(' ','')
+def mutate_sequence(seq, pos,aa):
+    # single mutation
+    # unnecessary
+    s = dict(enumerate(seq,1))
+    s[pos] = aa
+    return ''.join(s.values())
 
-    sequences = FastaToSeries('../data/sequences/Sequences.fasta')
+def map_sequences(s1,s2):
+    '''
+    s1 & s2 - ref & query sequences - str
+    returns {idx:idx} mapping for s1:s2
+    '''
+    aln_s1 ,aln_s2= aln(s1,s2)
+    d = {i:j for i,j in enumerate(aln_s2,1)}
+    renum = {}
+    count =1
+    for i in d:
+        if d[i] != '-':
+            renum[i] = count
+            count += 1
+    return renum
 
-    for i, name in zip(sequences, sequences.index):
-        print(name)
-        d1,d2 = Renumber(ref_seq,i, return_both=True)
-        for j,k in zip(d1,d2):
-            if d1[j] != d2[k] and d2[k] != '-':
-                print(j,d1[j], k,d2[k])
+def _test():
+    s1 = 'MTIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRL'
+    s2 = 'MTIPEMPQPKPVQALMKGEIFKFEPPGRPTYLSSQRL'
+    x = map_sequences(s1,s2)
+    print(x)
+    series = fasta_to_series('../data/sequences/Sequences.fasta')
+
+    wt = '''MTIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRLIKE\
+    ACDESRFDKNLSQALKFVRDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQK\
+    WERLNADEHIEVPEDMTRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMVRALDEAMNKLQRANPDDPAY\
+    DENKRQFQEDIKVMNDLVDKIIADRKASGEQSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHE\
+    TTSGLLSFALYFLVKNPHVLQKAAEEAARVLVDPVPSYKQVKQLKYVGMVLNEALRLWPTAPAFSLYAK\
+    EDTVLGGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPERFENPSAIPQHAFKPFGNGQRACIGQQF\
+    ALHEATLVLGMMLKHFDFEDHTNYELDIKETLTLKPEGFVVKAKSKKIPLGGIPSPSTEQSAKKVRKKAEN'''.replace(' ','')
+
+    from tqdm import tqdm
+    idx =[]
+    mutations = []
+    for i in tqdm(series.index):
+        d = diff(wt,series[i])
+        fmt_mutations = [f"{d[j]['from']}{j}{d[j]['to']}" for j in d]
+        pdb_id = i.split('_')[0]
+        mutations.append(fmt_mutations)
+        idx.append(pdb_id)
+    pd.Series(mutations, index = idx).to_csv()
+
 
 if __name__ == '__main__':
-    test_renumber()
+    _test()

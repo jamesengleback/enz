@@ -36,6 +36,20 @@ conda install -c https://conda.anaconda.org/biocore scikit-bio
 conda install -c oddt oddt
 ```
 
+rdkit - dependency for oddt + useful cheminformatics tools
+```
+conda install rdkit -c rdkit
+```
+
+autodock-vina - docking
+```
+conda install -c bioconda autodock-vina
+```
+OpenBabel - mol file handling
+```
+conda install -c openbabel openbabel
+```
+
 # todo
 
 ## folding

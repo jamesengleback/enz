@@ -1,7 +1,6 @@
 name: bm3
 channels:
   - https://conda.graylab.jhu.edu
-  - openbabel
   - oddt
   - rdkit
   - bioconda
@@ -105,7 +104,6 @@ dependencies:
   - numpydoc=0.9.2=py_0
   - oddt=0.7=py_0
   - olefile=0.46=py36_0
-  - openbabel=2.4.1=py36_6
   - openssl=1.1.1g=h7b6447c_0
   - packaging=20.3=py_0
   - pandas=1.0.3=py36h0573a6f_0

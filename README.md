@@ -22,7 +22,7 @@ python quick_mutate.py -t data/clean/3ben_clean.pdb -x "a82f f87v l181k i263p" -
 * **tmp** - temporary
 * **folding** - folding methods
 * **docking** - autodock is easiest - try first
-- **docs** - documentation for packages + papers
+* **docs** - documentation for packages + papers
 
 # Packages
 I've saved an environment ```environment.yml``` run ```conda env create -f environment.yml``` to copy it, ```conda activate bm3``` to activate, ```conda deactivate``` to deactivate.
@@ -59,17 +59,15 @@ conda install -c conda-forge biopandas
 # todo
 
 ## folding
-- sidechain repacking - restrict to active site
+The mutation programs I have re-pack sidechains with 5A of the mutation, additional options are:
+- more sidechain repacking
 - loop remodelling (82-92, 435-439)
-- score functions - which
+- score functions - compared a bit in /data/stats
+- validating models - backbone rmsd to targets?
 
 ## docking
-- set up autodock script with odt
+- set up autodock script with odt - nn/rf score
 - rosetta docking
 
-## bits
-- save conda env + leave instructions
-- move tesing tools into tools
-- clean testing
-- link https papers
-- compare score functions
+# bits
+- look into score outliers from /data/stats/stats.ipynb ; Group1 = 1smj, 3qi8, 3ekb, 3cbd ; Group2 = 3ekd, 4dqk, 4dql

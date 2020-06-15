@@ -11469,91 +11469,48 @@ ANISOU 7093  O1  LDP B 501     2979   3308   2736   -116     17    -59       O
 ANISOU 7094  O2  LDP B 501     3199   3619   2930   -109      9   -107       O  
 ANISOU 7095  C8  LDP B 501     2708   2907   2642    -96      6   -150       C  
 ANISOU 7096  N1  LDP B 501     2406   2583   2385   -100      1   -132       N  
-HETATM 7097  CHA HEM A 500      -6.259  52.898  12.391  1.00 18.96           C  
 ANISOU 7097  CHA HEM A 500     2573   2389   2243     12    100    104       C  
-HETATM 7098  CHB HEM A 500     -11.149  52.854  12.153  1.00 17.65           C  
 ANISOU 7098  CHB HEM A 500     2447   2264   1995     38     91    127       C  
-HETATM 7099  CHC HEM A 500     -10.949  48.291  10.368  1.00 15.59           C  
 ANISOU 7099  CHC HEM A 500     2149   1973   1802     45     50    133       C  
-HETATM 7100  CHD HEM A 500      -6.134  48.199  11.068  1.00 20.39           C  
 ANISOU 7100  CHD HEM A 500     2711   2538   2498     28     50    120       C  
-HETATM 7101  C1A HEM A 500      -7.592  53.308  12.516  1.00 22.68           C  
 ANISOU 7101  C1A HEM A 500     3058   2871   2687     17    101    108       C  
-HETATM 7102  C2A HEM A 500      -8.098  54.557  13.002  1.00 20.20           C  
 ANISOU 7102  C2A HEM A 500     2746   2559   2369     16    110     93       C  
-HETATM 7103  C3A HEM A 500      -9.447  54.499  12.945  1.00 18.05           C  
 ANISOU 7103  C3A HEM A 500     2485   2299   2074     25    107     99       C  
-HETATM 7104  C4A HEM A 500      -9.844  53.244  12.386  1.00 19.58           C  
 ANISOU 7104  C4A HEM A 500     2684   2498   2257     30     97    119       C  
-HETATM 7105  CMA HEM A 500     -10.492  55.521  13.341  1.00 16.49           C  
 ANISOU 7105  CMA HEM A 500     2288   2106   1871     29    113     83       C  
-HETATM 7106  CAA HEM A 500      -7.268  55.728  13.551  1.00 17.76           C  
 ANISOU 7106  CAA HEM A 500     2423   2239   2088      7    120     65       C  
-HETATM 7107  CBA HEM A 500      -6.940  55.428  15.017  1.00 16.02           C  
 ANISOU 7107  CBA HEM A 500     2180   2057   1851     -6     95     46       C  
-HETATM 7108  CGA HEM A 500      -6.107  56.598  15.597  1.00 20.34           C  
 ANISOU 7108  CGA HEM A 500     2704   2595   2428    -16    102      3       C  
-HETATM 7109  O1A HEM A 500      -5.603  56.515  16.777  1.00 22.42           O  
 ANISOU 7109  O1A HEM A 500     2943   2898   2677    -27     81    -21       O  
-HETATM 7110  O2A HEM A 500      -6.001  57.673  14.943  1.00 17.37           O  
 ANISOU 7110  O2A HEM A 500     2330   2177   2092    -13    127     -8       O  
-HETATM 7111  C1B HEM A 500     -11.526  51.641  11.596  1.00 18.70           C  
 ANISOU 7111  C1B HEM A 500     2578   2397   2128     42     80    137       C  
-HETATM 7112  C2B HEM A 500     -12.874  51.196  11.231  1.00 18.84           C  
 ANISOU 7112  C2B HEM A 500     2599   2424   2135     51     74    140       C  
-HETATM 7113  C3B HEM A 500     -12.788  49.923  10.720  1.00 16.52           C  
 ANISOU 7113  C3B HEM A 500     2295   2122   1860     52     62    140       C  
-HETATM 7114  C4B HEM A 500     -11.404  49.519  10.796  1.00 13.92           C  
 ANISOU 7114  C4B HEM A 500     1956   1779   1556     45     61    140       C  
-HETATM 7115  CMB HEM A 500     -14.122  52.058  11.326  1.00 15.96           C  
 ANISOU 7115  CMB HEM A 500     2242   2071   1750     59     79    135       C  
-HETATM 7116  CAB HEM A 500     -13.836  48.952  10.162  1.00 20.33           C  
 ANISOU 7116  CAB HEM A 500     2768   2605   2350     58     51    134       C  
-HETATM 7117  CBB HEM A 500     -15.031  49.394   9.711  1.00 25.14           C  
 ANISOU 7117  CBB HEM A 500     3386   3228   2937     69     53    127       C  
-HETATM 7118  C1C HEM A 500      -9.621  47.857  10.336  1.00 19.19           C  
 ANISOU 7118  C1C HEM A 500     2589   2411   2290     42     47    128       C  
-HETATM 7119  C2C HEM A 500      -9.091  46.636   9.791  1.00 23.09           C  
 ANISOU 7119  C2C HEM A 500     3057   2881   2833     45     37    110       C  
-HETATM 7120  C3C HEM A 500      -7.724  46.603   9.985  1.00 21.17           C  
 ANISOU 7120  C3C HEM A 500     2801   2625   2617     41     38    107       C  
-HETATM 7121  C4C HEM A 500      -7.387  47.827  10.676  1.00 18.84           C  
 ANISOU 7121  C4C HEM A 500     2524   2347   2287     34     48    122       C  
-HETATM 7122  CMC HEM A 500      -9.915  45.535   9.087  1.00 19.63           C  
 ANISOU 7122  CMC HEM A 500     2602   2433   2425     52     27     88       C  
-HETATM 7123  CAC HEM A 500      -6.698  45.500   9.594  1.00 20.88           C  
 ANISOU 7123  CAC HEM A 500     2730   2559   2645     44     28     84       C  
-HETATM 7124  CBC HEM A 500      -6.972  44.424   8.841  1.00 25.08           C  
 ANISOU 7124  CBC HEM A 500     3238   3072   3219     52     22     53       C  
-HETATM 7125  C1D HEM A 500      -5.690  49.459  11.476  1.00 17.57           C  
 ANISOU 7125  C1D HEM A 500     2365   2192   2118     21     64    119       C  
-HETATM 7126  C2D HEM A 500      -4.281  49.848  11.671  1.00 17.61           C  
 ANISOU 7126  C2D HEM A 500     2356   2189   2147     15     69    107       C  
-HETATM 7127  C3D HEM A 500      -4.365  51.281  12.062  1.00 14.36           C  
 ANISOU 7127  C3D HEM A 500     1957   1787   1711      9     85    102       C  
-HETATM 7128  C4D HEM A 500      -5.799  51.644  12.092  1.00 19.39           C  
 ANISOU 7128  C4D HEM A 500     2616   2438   2313     14     88    111       C  
-HETATM 7129  CMD HEM A 500      -2.944  49.032  11.587  1.00 15.55           C  
 ANISOU 7129  CMD HEM A 500     2064   1909   1937     15     59     96       C  
-HETATM 7130  CAD HEM A 500      -3.172  52.199  12.405  1.00 17.76           C  
 ANISOU 7130  CAD HEM A 500     2375   2211   2163     -1     96     84       C  
-HETATM 7131  CBD HEM A 500      -2.683  52.717  11.106  1.00 20.90           C  
 ANISOU 7131  CBD HEM A 500     2778   2590   2573      2    132     75       C  
-HETATM 7132  CGD HEM A 500      -1.481  53.587  11.357  1.00 21.15           C  
 ANISOU 7132  CGD HEM A 500     2791   2607   2636     -9    146     58       C  
-HETATM 7133  O1D HEM A 500      -0.470  53.364  10.596  1.00 21.02           O  
 ANISOU 7133  O1D HEM A 500     2760   2579   2646    -11    165     49       O  
-HETATM 7134  O2D HEM A 500      -1.562  54.534  12.245  1.00 21.44           O  
 ANISOU 7134  O2D HEM A 500     2825   2646   2676    -18    142     47       O  
-HETATM 7135  NA  HEM A 500      -8.692  52.566  12.112  1.00 21.02           N  
 ANISOU 7135  NA  HEM A 500     2857   2669   2459     26     94    122       N  
-HETATM 7136  NB  HEM A 500     -10.710  50.575  11.366  1.00 15.32           N  
 ANISOU 7136  NB  HEM A 500     2139   1959   1724     39     71    140       N  
-HETATM 7137  NC  HEM A 500      -8.566  48.591  10.849  1.00 19.21           N  
 ANISOU 7137  NC  HEM A 500     2594   2414   2291     35     54    132       N  
-HETATM 7138  ND  HEM A 500      -6.544  50.555  11.664  1.00 16.36           N  
 ANISOU 7138  ND  HEM A 500     2235   2055   1928     21     76    122       N  
-HETATM 7139  FE  HEM A 500      -8.589  50.588  11.432  1.00 19.65          FE  
 ANISOU 7139  FE  HEM A 500     2673   2488   2306     31     76    132      FE  
 ANISOU 7140  C7  LDP A 501     3374   3327   2996    -11     17    178       C  
 ANISOU 7141  C1  LDP A 501     3546   3542   3125    -17     24    157       C  

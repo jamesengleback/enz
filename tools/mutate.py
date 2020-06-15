@@ -1,96 +1,85 @@
-import argparse
 import pandas as pd
-from Bio import pairwise2
+import skbio
+import re
+from tqdm import tqdm
+import os
+import random
+import argparse
+import pyrosetta
+import Folds
+
+def ParseMutation(m):
+    if m != None:
+        number = int(''.join([i for i in m if i.isdigit()]))
+        letter = [i for i in m if i.isalpha()][-1] # in case they give 2 letters
+        return number, letter.upper()
+    else:
+        return None
+
+def MutateSequence(mutations):
+    # mutations is list
+    # return mutated sequence
+    # map to pose later
+    seq = list('''MTIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRL\
+    IKEACDESRFDKNLSQALKFVRDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQ\
+    KWERLNADEHIEVPEDMTRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMVRALDEAMNKLQRANPDDPAYD\
+    ENKRQFQEDIKVMNDLVDKIIADRKASGEQSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTS\
+    GLLSFALYFLVKNPHVLQKAAEEAARVLVDPVPSYKQVKQLKYVGMVLNEALRLWPTAPAFSLYAKEDTVL\
+    GGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPERFENPSAIPQHAFKPFGNGQRACIGQQFALHEATL\
+    VLGMMLKHFDFEDHTNYELDIKETLTLKPEGFVVKAKSKKIPLGGIPSPSTEQSAKKVRKKGC'''.replace(' ',''))
+    for num, aa in mutations:
+        seq[num] = aa
+    return ''.join(seq)
 
 
-def FastaToDataFrame(path):
-    # opens fasta files, outputs dataframe
-    with open(path,'r') as file:
-        data = file.read()
-    data = [i.split('\n') for i in data.split('>')]
-    index = [i[0] for i in data][1:] # first item is ''
-    values = [list(''.join(i[1:])) for i in data][1:] # first item is []
-    df = pd.DataFrame(values, index=index)
-    return df
-
-def FastaToSeries(path):
-    # opens fasta files, outputs series
-    # full fasta string in one cell
-    with open(path,'r') as file:
-        data = file.read()
-    data = [i.split('\n') for i in data.split('>')]
-    index = [i[0] for i in data][1:] # first item is ''
-    values = [''.join(i[1:]) for i in data][1:] # first item is []
-    df = pd.Series(values, index=index)
-    return df
-
-def AlignAgainstReferenceSequence(query_seq):
-    reference_seq='''MTIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRLIKEACDESRFDKNLSQ\
-    ALKFVRDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQKWERLNADEHIEVPEDMTRL\
-    TLDTIGLCGFNYRFNSFYRDQPHPFITSMVRALDEAMNKLQRANPDDPAYDENKRQFQEDIKVMNDLVDKIIADR\
-    KASGEQSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTSGLLSFALYFLVKNPHVLQKAAEEAARVL\
-    VDPVPSYKQVKQLKYVGMVLNEALRLWPTAPAFSLYAKEDTVLGGEYPLEKGDELMVLIPQLHRDKTIWGDDVEE\
-    FRPERFENPSAIPQHAFKPFGNGQRACIGQQFALHEATLVLGMMLKHFDFEDHTNYELDIKETLTLKPEGFVVKA\
-    KSKKIPLGGIPSPSTEQSAKKVRKKGC*'''
-    alignments = pairwise2.align.globalxx(reference_seq, query_seq) # makes several alignments
-    all_scores = [i[2] for i in alignments]
-    top_scores_indexes = [i for i,j in enumerate(all_scores) if j ==max(all_scores)]# list of indexes where score is max()
-    top_alignment = alignments[top_scores_indexes[0]] # Highest scoring first
-
-    dictionary = {'aln_reference_seq': top_alignment[0],
-    'aln_query_seq':top_alignment[1],
-        'aln_score': top_alignment[2]}
-    return dictionary
-
-def ResidueConservation(seq1, seq2):
-    ## takes two aligned sequences
-    # probably won't work if  they're different lengths
-    alignment_df = pd.DataFrame([list(seq1), list(seq2)])
-    alignment_df.replace(' ','-', inplace = True)
-    conserved_residue_count = 0
-    for i in alignment_df:
-        if len(alignment_df[i].unique()) <2:
-            conserved_residue_count += 1
-    frac_conserved = conserved_residue_count/len(seq1)
-    return frac_conserved
+def MutatePose(mutant, pose):
+    print('\x1b[31m') #red
+    mutant_seq = skbio.Protein(mutant)
+    pose_seq = skbio.Protein(pose.sequence())
+    aln = skbio.alignment.global_pairwise_align_protein(mutant_seq,pose_seq)
+    aln_mutant = ''.join([i.decode() for i in aln[0].loc[0].values])
+    aln_pose = ''.join([i.decode() for i in aln[0].loc[1].values])
+    new_pose_seq = []
+    for i,j in zip(aln_mutant, aln_pose):
+        if i != j and j != '-' and i != '-' :
+            new_pose_seq.append(i)
+        else:
+            new_pose_seq.append(j)
+    new_pose_seq = ''.join(new_pose_seq)
+    new_pose_seq = new_pose_seq.replace('-','')
+    pose_seq_ascii = ''.join([i.decode() for i in pose_seq.values] )
+    mutations = [{'index':idx,'from':i,'to':j} for idx,(i,j) in enumerate(zip(pose_seq_ascii, new_pose_seq),1) if i != j]
+    for i in mutations:
+        idx, old, new = i['index'], i['from'], i['to']
+        pyrosetta.toolbox.mutate_residue(pose, idx,new)
+        print(f' \x1b[31m mutation: {old + str(idx) + new}')
+    print('\x1b[0m') # reset colors
 
 
 
-def FindMutations(query_seq):
-    reference_seq='''MTIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRLIKEACDESRFDKNLSQ\
-    ALKFVRDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQKWERLNADEHIEVPEDMTRL'''
+def test():
+    #new_seq = MutateSequence([ParseMutation(i) for i in args.mutations.split()])
+    template_file = args.template
+    #all_templates = [os.path.join('../data/clean/', i) for i in os.listdir('../data/clean/')]
+    #template_file = random.sample(all_templates, 1)[0]
 
-    alignments = pairwise2.align.localxx(reference_seq, query_seq) # makes several alignments
-    all_scores = [i[2] for i in alignments]
-    top_scores_indexes = [i for i,j in enumerate(all_scores) if j ==max(all_scores)]# list of indexes where score is max()
-    top_alignment = alignments[top_scores_indexes[0]] # Highest scoring first
+    pyrosetta.init()
+    template_pose = pyrosetta.pose_from_pdb(template_file)
+    # make mutant from template
+    mutant_pose = pyrosetta.Pose()
+    mutant_pose.assign(template_pose)
+    MutatePose(new_seq, mutant_pose)
 
-    dictionary = {'aln_reference_seq': top_alignment[0].replace(' ','-'),
-    'aln_query_seq':top_alignment[1].replace(' ','-'),
-        'aln_score': top_alignment[2]}
+    print(f'template: \t {os.path.basename(template_file)}')
+    diff(mutant_pose.sequence(), template_pose.sequence()) #check, takes time though
 
-    mutations = [{'ref':j[0],'pos':i,'query':j[1]} for i, j in enumerate(zip(dictionary['aln_reference_seq'],\
-    dictionary['aln_query_seq'])) if j[0] != j[1] ] # list of dictionarys
-    # trim down
-    mutations = [i for i in mutations if i['pos'] > 20 and i['pos'] < 400]
-    print(mutations)
+    # fold
+    Folds.PackChainsMini(mutant_pose)
 
-
-def main(args):
-    BM3s = FastaToSeries(args.sequences)
-    mutant_id = [i for i in BM3s.index if '1p0x' in i][0] # should be one item
-    for i in BM3s:
-        mutant_sequence = i
-
-        alignment = AlignAgainstReferenceSequence(mutant_sequence)
-        frac_conserved = ResidueConservation(alignment['aln_reference_seq'], alignment['aln_query_seq'])
-        print(f'Percentage Conservation: {round(100 * frac_conserved,2)} %')
-
-        FindMutations(mutant_sequence)
-
+    if args.output == None:
+        mutant_pose.dump_pdb(f"../tmp/BM3-{args.mutations.replace(' ','-')}.pdb")
+    else:
+        mutant_pose.dump_pdb(args.output)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-s','--sequences', help = 'MSA file')
-    args = parser.parse_args()
-    main(args)
+    test()

@@ -57,7 +57,11 @@ def SingleOutChain(pandas_pdb):
 
 def StripHetAtoms(pandas_pdb):
     # strips water and ligands, except the heme
+    unique_chains = pandas_pdb.df['ATOM']['chain_id'].unique()
+    chain_1 = unique_chains[0]
+
     pandas_pdb.df['HETATM'] = pandas_pdb.df['HETATM'].loc[pandas_pdb.df['HETATM']['residue_name'] == 'HEM']
+    pandas_pdb.df['HETATM'] = pandas_pdb.df['HETATM'].loc[pandas_pdb.df['HETATM']['chain_id'] == chain_1]
     return pandas_pdb
 
 

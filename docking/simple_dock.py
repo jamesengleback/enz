@@ -1,5 +1,6 @@
 import oddt
 from oddt import docking
+from oddt.scoring.functions import NNScore
 import numpy as np
 
 def read_smiles(smiles):
@@ -35,9 +36,16 @@ def main():
     mol = read_smiles('c1ccccc1')
 
     vina = docking.autodock_vina(protein)
-    results = vina.dock(mol)
-    heme_fe = find_heme(protein)
-    print(distance_to(results[0], heme_fe))
+    #results = vina.dock(mol)
+    #print('Docking done')
+    nn = NNScore.nnscore(protein)
+    nn.load()
+    print(nn.model)
+    score = nn.predict(results)
+    print(score)
+
+    #heme_fe = find_heme(protein)
+    #print(distance_to(results[0], heme_fe))
 
 
 if __name__ == '__main__':

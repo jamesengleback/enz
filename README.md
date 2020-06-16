@@ -1,8 +1,9 @@
-# BM3-Design-PyRosetta
+# Enzyme-design
 # I ❤️ BM3
 # Based on [**Small-molecule ligand docking into comparative models with Rosetta (2013)**](https://github.com/jamesengleback/BM3-Design-PyRosetta/blob/master/docs/rosetta-ligand-dock-2013.pdf)
 
-# Aim - BM3 structure prediction and Docking Tool
+# Aim - Homology structure prediction and Docking Tool
+# BM3
 * **Renumbering** - the ```.pdb``` templates have missing residues, so they are aligned to the full sequence and map mutations in the sequence to the structure.
 * **Folding**  - side chain packing is most important, also loop modelling for flexible regions (82-92, 435-439).
 * **Docking** - autodock and rosetta docking are options. **Rosetta docking:** better performance **autodock:** 2-3 times faster.
@@ -14,7 +15,10 @@
 ```bash
 python quick_mutate.py -t data/clean/3ben_clean.pdb -x "a82f f87v l181k i263p" -o output.pdb
 ```
-
+* **Docking:** in progress - autodock VINA
+# todo
+* **Folding:** Loop modelling on flexible regions (BM3 - 82-92, 435-439), maybe more
+* **Docking:** Save outputs, make pipey, score - nnscore
 # Folders
 * **data** - BM3 fastas, ```.pdbs``` and clean ```.pdbs``` where water and ligands are removed (except heme).
 * **testing** - testing folding methods
@@ -24,7 +28,7 @@ python quick_mutate.py -t data/clean/3ben_clean.pdb -x "a82f f87v l181k i263p" -
 * **docking** - autodock is easiest - try first
 * **docs** - documentation for packages + papers
 
-# Packages
+# Packages - needs test
 I've saved an environment ```environment.yml``` run ```conda env create -f environment.yml``` to copy it, ```conda activate bm3``` to activate, ```conda deactivate``` to deactivate.
 
 [**Pyrosetta**](http://www.pyrosetta.org/dow) - folding and docking

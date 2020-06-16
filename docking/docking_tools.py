@@ -48,10 +48,12 @@ def dock_single(protein, oddt_mol):
     SCORES = autodock_score(results, vina)
     return SCORES
 
-def dock_multi(protein, smiles, names):
+def dock_multi(protein, smiles, names, target=None):
     # protein must be oddt type
-    
-    outdir = 'DockingResults'
+    if target != None:
+        outdir = 'docking_results'
+    else:
+        outdir = os.path.join(target,'docking_results')
     if not os.path.exists(outdir):
         os.mkdir(outdir)
 
@@ -59,9 +61,10 @@ def dock_multi(protein, smiles, names):
 
     df = pd.DataFrame([],columns=['vina_affinity', 'vina_rmsd_lb', 'vina_rmsd_ub', 'vina_rmsd_input',
        'vina_rmsd_input_min', 'vina_gauss1', 'vina_gauss2', 'vina_repulsion',
-       'vina_hydrophobic', 'vina_hydrogen', 'SMILES Atom Order', 'name'])
+       'vina_hydrophobic', 'vina_hydrogen', 'SMILES Atom Order', 'cpd', 'tgt'])
 
-    df.to_csv(scores_path)
+    if not os.path.exists(scores_path):
+        df.to_csv(scores_path, index=None)
 
     vina = docking.autodock_vina(protein)
 
@@ -70,8 +73,9 @@ def dock_multi(protein, smiles, names):
         results = vina.dock(mol)
         save_results(results, i, parent_dir=outdir)
         scores = autodock_score(results, vina)
-        scores['name'] = i
-        scores.to_csv(scores_path, mode='a')
+        scores['cpd'] = i
+        scores['tgt'] = target
+        scores.to_csv(scores_path, mode='a', header=None, index=None)
 
 def test():
     protein = make_protein('../data/clean/1jme_clean.pdb')

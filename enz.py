@@ -1,12 +1,11 @@
 import os
-import numpy as np
 import pandas as pd
 from tqdm import  tqdm
 import multiprocessing
-
+import io
 import oddt
 from oddt import docking
-from oddt.scoring.functions import NNScore
+
 import pyrosetta
 
 import tools
@@ -15,14 +14,14 @@ class Protein():
     def __init__(self, pdb_path, seq = None):
         self.pdb_path = pdb_path
         self.cache = '__protein-cache__' # todo: resolve clashes
+        os.makedirs(self.cache, exist_ok=True)
         self.clean_pdb()
-        self.pdb_seq = tools.pdb_to_seq('__protein-cache__/clean.pdb')
+        self.pdb_seq = tools.pdb_to_seq(os.path.join(self.cache,'clean.pdb'))
         self.seq = seq if seq != None else tools.pdb_to_seq(self.pdb_path)
         self.map = tools.map_sequences(self.seq, self.pdb_seq)
 
     def clean_pdb(self):
         pdb = tools.clean_pdb(self.pdb_path)
-        os.makedirs(self.cache, exist_ok=True)
         path_to_clean_pdb = os.path.join(self.cache, 'clean.pdb')
         pdb.to_pdb(path_to_clean_pdb)
         self.path_to_clean_pdb = path_to_clean_pdb # todo: move to tools
@@ -80,7 +79,6 @@ class Protein():
                 f.writelines(file) # todo: move to tools
 
 
-
 class Vina():
     def __init__(self, protein = None, screen=None):
         self.cache = '__vina-cache__'
@@ -107,7 +105,6 @@ class Vina():
         return oddt_protein
 
     def read_pdb(self,path):
-        print(path)
         oddt_protein = next(oddt.toolkit.readfile('pdb', path))
         oddt_protein.protein = True # register that it's a protein
         oddt_protein.addh()

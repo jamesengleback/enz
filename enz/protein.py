@@ -7,10 +7,11 @@ class protein():
         self.pdb_path = pdb_path
         self.clean_pdb()
         self.pdb_seq = tools.pdb_to_seq('__protein-cache__/clean.pdb')
-        self.seq = seq if seq != None else tools.pdb_to_seq(self.pdb)
+        self.seq = seq if seq != None else tools.pdb_to_seq(self.pdb_path)
         self.map = tools.map_sequences(self.seq, self.pdb_seq)
 
-    def mutate_seq(self, pos, aa):
+    def mutate(self, pos, aa):
+        # only changes internal sequence
         # input: self.seq position ; amino acid letter
         seq = list(self.seq) # lists are mutable
         seq[pos] = aa
@@ -19,14 +20,10 @@ class protein():
 
     def mutate_pose(self, pose):
         # mutate at diff between self.seq and self.pdb_seq
-        for i in self.map:
-            correspond = self.map[i]
-            if correspond != '-':
-                a = self.seq[i] # true seq
-                b = self.pdb_seq[correspond] # pdb seq
-                if a != b and a != '-' and b != '-':
-                    print(a,b)
-                    #pyrosetta.toolbox.mutate_residue(pose, correspond, a, pack_radius = 5.0)
+        diff = tools.diff(self.pdb_seq,self.seq)
+        for i in diff:
+            a,b, idx = diff[i]['from'], diff[i]['to'], self.map[i]
+            pyrosetta.toolbox.mutate_residue(pose, idx, b, pack_radius = 5.0)
 
     def clean_pdb(self):
         pdb = tools.clean_pdb(self.pdb_path)
@@ -41,9 +38,31 @@ class protein():
         # mutate
         self.mutate_pose(pose)
         # loop remodel
+        self.pose = pose
 
-    def dump(self):
-        pass
+    def dump(self, path):
+        if hasattr(self, 'pose'):
+            self.pose.dump_pdb(path)
+        else:
+            self.fold()
+            self.pose.dump_pdb(path)
+        self.check_dump(path)
+
+    def check_dump(self,path):
+        # check if file ends with END,
+        # add END if not
+        # otherwise, oddt has trouble reading file
+        with open(path,'r') as f:
+            file = f.readlines()
+        if 'END' not in file[-1]:
+            # todo: check other lines for 'END'
+            # blank lines not allowed
+            file[-1] = file[-1].replace('\n','')
+            file.append('END')
+            # re-write
+            with open(path,'w') as f:
+                f.writelines(file)
+
 
 def test():
     wt = '''MTIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRLIKE\
@@ -56,7 +75,7 @@ def test():
 
     prot = protein(pdb_path = '../data/clean/1jme_clean.pdb', seq = wt)
     for i in range(80,90):
-        prot.mutate_seq(i, 'A')
+        prot.mutate(i, 'A')
     prot.fold()
     print(prot.seq)
 

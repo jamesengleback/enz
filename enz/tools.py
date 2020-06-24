@@ -72,9 +72,9 @@ def map_sequences(s1,s2):
     returns {idx:idx} mapping for s1:s2
     '''
     aln_s1 ,aln_s2= aln(s1,s2)
-    d = {i:j for i,j in enumerate(aln_s2)}
+    d = {i:j for i,j in enumerate(aln_s2)} # {0:M, 1:T, ... }
     renum = {}
-    count =1
+    count = 1
     for i in d:
         if d[i] != '-':
             renum[i] = count
@@ -130,7 +130,7 @@ def StripHetAtoms(pandas_pdb):
     pandas_pdb.df['HETATM'] = pandas_pdb.df['HETATM'].loc[pandas_pdb.df['HETATM']['chain_id'] == chain_1]
     return pandas_pdb
 
-    
+
 def _test():
     series = fasta_to_series('../data/sequences/Sequences.fasta')
 

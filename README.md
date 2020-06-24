@@ -6,26 +6,21 @@
 ```python
 import enz
 
-enzyme = enz.protein(pdb = '****.pdb', seq = 'mtikemlmssp...')
+path = 'data/clean/1jme_clean.pdb'
+wt = tools.fasta_to_series('bm3-wt.fasta')[0]
+bm3 = enz.Protein(pdb_path = 'data/clean/1jme_clean.pdb', seq = wt)
+for i in range(80,90):
+    bm3.mutate_seq(i, 'A')
+bm3.refold()
 
-enzyme.mutate(pos = 82,aa= 'F') # lazy
-# or
-enzyme.mutate(seq = seq) # lazy
-
-enzyme.fold(loop = True) # generate ensemble
-
-vina = enz.vina(protein = enzyme,
-                cpds = 'c1ccccc', # or iterable
-                cpd_names = 'benzene', # same len() as cpds
-                score = None,
-                output_dir = None)
-
-def custom_score(protein, cpd):
-  ...
-  return score     
-
-vina.score = custom_score
-
-vina.dock() # dock ensemble, return score
+# todo: bm3.dock(...)
+vina = enz.Vina(bm3)
+scores, results = vina.dock('c1ccccc', 'benzene')
 
 ```
+
+# todo
+- setup.py
+- test on more examples
+- 
+- nnscore

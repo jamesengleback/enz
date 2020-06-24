@@ -59,7 +59,7 @@ class Protein():
         if hasattr(self, 'pose'):
             self.pose.dump_pdb(path)
         else:
-            self.fold()
+            self.refold()
             self.pose.dump_pdb(path)
         self.check_dump(path)
 
@@ -77,7 +77,6 @@ class Protein():
             # re-write
             with open(path,'w') as f:
                 f.writelines(file) # todo: move to tools
-
 
 class Vina():
     def __init__(self, protein = None, screen=None):

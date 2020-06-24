@@ -12,7 +12,7 @@ def _test_Protein():
     bm3 = enz.Protein(pdb_path = 'data/clean/1jme_clean.pdb', seq = wt)
     for i in range(80,90):
         bm3.mutate_seq(i, 'A')
-    bm3.fold()
+    bm3.refold()
 
 def _test_vina_1():
     '''
@@ -36,7 +36,7 @@ def _test_vina_2():
     wt = tools.fasta_to_series('bm3-wt.fasta')[0]
     bm3 = enz.Protein(pdb_path = 'data/clean/3ben_clean.pdb', seq = wt)
 
-    vina = enz.Vina('data/clean/1jme_clean.pdb')
+    vina = enz.Vina(bm3)
     for s, n in tqdm(zip(df['SMILES'],df['Name']), total = len(df)):
         scores, results = vina.dock(s,n)
         print(scores)

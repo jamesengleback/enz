@@ -1,8 +1,8 @@
 import pandas as pd
 from tqdm import tqdm
 
-import enz
-import enz.tools
+from enz import tools
+from enz import enz
 
 
 

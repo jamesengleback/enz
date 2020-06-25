@@ -8,7 +8,7 @@ from oddt import docking
 
 import pyrosetta
 
-import tools
+from enz import tools
 
 class Protein():
     def __init__(self, pdb_path, seq = None):

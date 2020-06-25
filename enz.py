@@ -144,7 +144,7 @@ class Vina():
         if save:
             # save scores
             output_dir = os.path.join(self.cache, name)
-            os.makedirs(output_dir)
+            os.makedirs(output_dir, exist_ok=True)
             scores.to_csv(os.path.join(output_dir, 'scores.csv'))
 
             # save docking poses

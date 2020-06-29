@@ -136,21 +136,25 @@ class Vina():
             self.vina = docking.autodock_vina(self.receptor, n_cpu = ncpu) # oddt.docking
 
         # main bit
-        results = self.vina.dock(self.read_smiles(smiles))
-        scores = self.autodock_score(results, self.vina)
-        scores['cpd'] = name
+        try:
+            results = self.vina.dock(self.read_smiles(smiles))
+            scores = self.autodock_score(results, self.vina)
+            scores['cpd'] = name
 
-        # save
-        if save:
-            # save scores
-            output_dir = os.path.join(self.cache, name)
-            os.makedirs(output_dir, exist_ok=True)
-            scores.to_csv(os.path.join(output_dir, 'scores.csv'))
+            # save
+            if save:
+                # save scores
+                output_dir = os.path.join(self.cache, name)
+                os.makedirs(output_dir, exist_ok=True)
+                scores.to_csv(os.path.join(output_dir, 'scores.csv'))
 
-            # save docking poses
-            for i,mol in enumerate(results):
-                filename = f'vina-{name}-{i}.pdb' # need to have receptor name too
-                path = os.path.join(output_dir,filename)
-                mol.write('pdb',path,overwrite=True)
+                # save docking poses
+                for i,mol in enumerate(results):
+                    filename = f'vina-{name}-{i}.pdb' # need to have receptor name too
+                    path = os.path.join(output_dir,filename)
+                    mol.write('pdb',path,overwrite=True)
 
-        return scores, results
+            return scores, results
+        except:
+            print('Uh oh - error in docking - could be heavy atoms?')
+            return None, None

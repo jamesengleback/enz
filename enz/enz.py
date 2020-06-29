@@ -119,10 +119,14 @@ class Vina():
         return mol
 
     def autodock_score(self, results, vina):
-        scores = pd.concat([pd.Series(i.data) for i in vina.score(results)],
-        axis=1,
-        join='outer').T
-        return scores
+        try:
+            scores = pd.concat([pd.Series(i.data) for i in vina.score(results)],
+            axis=1,
+            join='outer').T
+            return scores
+        except:
+            raise EnzError('Auto dock score failed')
+            return None
 
     def dock(self, smiles, name, ncpu = None, score_fn = None, save = True):
         # set defaults

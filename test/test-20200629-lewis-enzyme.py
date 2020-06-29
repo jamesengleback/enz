@@ -19,6 +19,9 @@ def main():
     pt.mutate_seq(256, 'L')
     pt.mutate_seq(399, 'A')
     pt.mutate_seq(17,'T')
+    print(pt.seq)
+    print()
+    print(pt.pdb_seq)
     pt.refold()
     pt.dump('pt-mutant.pdb')
 

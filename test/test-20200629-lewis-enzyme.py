@@ -13,9 +13,9 @@ def clean(path):
     return out_filename
 
 def main():
-    seq = tools.fasta_to_series('data/sequences/A8-4-prenyltransferase-aa.fasta')[0]
+    #seq = tools.fasta_to_series('data/sequences/A8-4-prenyltransferase-aa.fasta')[0]
     struc = clean('data/raw/lewis/5kcg.pdb')
-    pt = enz.Protein(pdb_path = struc, seq = seq)
+    pt = enz.Protein(pdb_path = struc, seq = None)
     pt.mutate_seq(256, 'L')
     pt.mutate_seq(399, 'A')
     pt.mutate_seq(17,'T')

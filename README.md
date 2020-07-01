@@ -4,7 +4,7 @@
 # Aim - Homology structure prediction and Docking Tool
 # Usage
 ```python
-import enz
+from enz import enz
 
 path = 'data/clean/1jme_clean.pdb'
 wt = tools.fasta_to_series('bm3-wt.fasta')[0]
@@ -22,12 +22,13 @@ scores, results = vina.dock('c1ccccc', 'benzene')
 ```
 
 # install
+**From the installation folder**
 
 ```conda env create -f env.yml```
 
 ```conda activate enz```
 
-```python setup.py install```
+```pip install .```
 
 
 # todo

@@ -5,3 +5,4 @@ dist
 build
 __
 enz.egg
+test

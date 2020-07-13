@@ -2,6 +2,7 @@ from enz import  enz, tools
 import pandas as pd
 import os
 from tqdm import tqdm
+from simple_colors import red
 
 def clean(path):
     # clean pdb
@@ -16,12 +17,9 @@ def main():
     #seq = tools.fasta_to_series('data/sequences/A8-4-prenyltransferase-aa.fasta')[0]
     struc = clean('data/raw/lewis/5kcg.pdb')
     pt = enz.Protein(pdb_path = struc, seq = None)
+    print(red(pt.seq,['bold']))
     pt.mutate_seq(256, 'L')
-    pt.mutate_seq(399, 'A')
     pt.mutate_seq(17,'T')
-    print(pt.seq)
-    print()
-    print(pt.pdb_seq)
     pt.refold()
     pt.dump('pt-mutant.pdb')
 

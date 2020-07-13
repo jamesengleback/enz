@@ -4,7 +4,13 @@ from tqdm import tqdm
 from enz import tools
 from enz import enz
 
-
+bm3_wt = 'MTIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRLIKEACDESRF\
+DKNLSQALKFVRDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQKWERLNADEHIEVPEDM\
+TRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMVRALDEAMNKLQRANPDDPAYDENKRQFQEDIKVMNDLVDKIIADR\
+KASGEQSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTSGLLSFALYFLVKNPHVLQKAAEEAARVLVDP\
+VPSYKQVKQLKYVGMVLNEALRLWPTAPAFSLYAKEDTVLGGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPERF\
+ENPSAIPQHAFKPFGNGQRACIGQQFALHEATLVLGMMLKHFDFEDHTNYELDIKETLTLKPEGFVVKAKSKKIPLGG\
+IPSPSTEQSAKKVRKKGC*'
 
 def _test_Protein():
     path = 'data/clean/1jme_clean.pdb'
@@ -33,8 +39,7 @@ def _test_vina_2():
     df = df.sample(3)
 
     path = 'data/clean/1jme_clean.pdb'
-    wt = tools.fasta_to_series('bm3-wt.fasta')[0]
-    bm3 = enz.Protein(pdb_path = 'data/clean/3ben_clean.pdb', seq = wt)
+        bm3 = enz.Protein(pdb_path = 'data/clean/3ben_clean.pdb', seq = bm3_wt)
 
     vina = enz.Vina(bm3)
     for s, n in tqdm(zip(df['SMILES'],df['Name']), total = len(df)):

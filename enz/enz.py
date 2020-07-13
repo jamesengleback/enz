@@ -10,8 +10,8 @@ from biopandas.pdb import PandasPdb
 
 import pyrosetta
 
-# from enz import tools # doesnt work in testiing
-import tools
+from enz import tools # doesnt work in testiing
+
 
 class Protein():
     def __init__(self, pdb_path, seq = None):

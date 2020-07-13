@@ -130,7 +130,6 @@ class Vina():
         def box_dims(coords, dim):
             return np.abs((coords[:,0].min() - coords[:,0].max()))
         box_dimensions = (box_dims(coords,0), box_dims(coords,1), box_dims(coords,2))
-        print(box_dimensions)
         return center, box_dimensions
 
     def process_protein(self,prot):

@@ -1,14 +1,17 @@
 import os
 import pandas as pd
+import numpy as np
 from tqdm import  tqdm
 import multiprocessing
 import io
 import oddt
 from oddt import docking
+from biopandas.pdb import PandasPdb
 
 import pyrosetta
 
-from enz import tools
+# from enz import tools # doesnt work in testiing
+import tools
 
 class Protein():
     def __init__(self, pdb_path, seq = None):
@@ -79,12 +82,56 @@ class Protein():
                 f.writelines(file) # todo: move to tools
 
 class Vina():
-    def __init__(self, protein = None, screen=None):
+    def __init__(self,
+     protein = None,
+     center = None,
+     box_dims = None,
+     acitve_site_aas=None,
+     ncpus=None,
+     exhaustiveness=8):
+
         self.cache = '__vina-cache__'
         os.makedirs(self.cache, exist_ok=True)
-        self.receptor = self.process_protein(protein)
-        if screen != None:
-            self.screen = self.read_screen(screen)
+        self.oddt_receptor, self.cache_path = self.process_protein(protein)
+
+        self.box_dims = box_dims
+        self.center = center
+        self.acitve_site_aas = acitve_site_aas
+        self.ncpus = ncpus
+        self.exhaustiveness = exhaustiveness
+        self.vina = self.init_vina()
+
+    def init_vina(self):
+        if self.acitve_site_aas != None:
+            center, box_dims = self.get_centre_pdb()
+        else:
+            center, box_dims = (0,0,0), (20,20,20)
+        if self.ncpus == None:
+            self.ncpus = multiprocessing.cpu_count() -1
+        if self.exhaustiveness == None:
+            self.exhaustiveness = 8
+
+        vina = docking.autodock_vina(self.oddt_receptor,
+        n_cpu = self.ncpus,
+        exhaustiveness=self.exhaustiveness,
+        size=box_dims,
+        center=center)
+        return vina
+
+    def get_centre_pdb(self):
+        pdb = PandasPdb().read_pdb(self.cache_path)
+        df = pdb.df['ATOM']
+        def get_CA(df, aa_num):
+            aa = df.loc[df['residue_number']==aa_num,:]
+            CA = aa.loc[aa['atom_name'] == 'CA', ['x_coord', 'y_coord', 'z_coord']].values.reshape(-1)
+            return CA
+        coords = np.array([get_CA(df, i) for i in self.acitve_site_aas])
+        center = coords.mean(axis=0)
+        def box_dims(coords, dim):
+            return np.abs((coords[:,0].min() - coords[:,0].max()))
+        box_dimensions = (box_dims(coords,0), box_dims(coords,1), box_dims(coords,2))
+        print(box_dimensions)
+        return center, box_dimensions
 
     def process_protein(self,prot):
         # type: pdb path, enz.protein.protein
@@ -94,7 +141,9 @@ class Vina():
         else:
             # assuming protein is pdb path
             oddt_protein = self.read_pdb(prot)
-        return oddt_protein
+        path = os.path.join(self.cache, 'receptor.pdb')
+        oddt_protein.write('pdb', path, overwrite=True)
+        return oddt_protein, path
 
     def read_protein(self,protein):
         # if enz.protein: dump in cache
@@ -128,12 +177,14 @@ class Vina():
             raise EnzError('Auto dock score failed')
             return None
 
-    def dock(self, smiles, name, ncpu = None, score_fn = None, save = True):
+    def dock(self, smiles, name=None, ncpu = None, score_fn = None, save = True):
         # set defaults
         if ncpu == None:
             ncpu = multiprocessing.cpu_count() -1
         if score_fn == None:
             score_fn = self.autodock_score
+        if name==None:
+            name = 'noname'
 
         # init vina if not done already
         if not hasattr(self,'vina'):
@@ -166,3 +217,26 @@ class Vina():
 
 class EnzError(Exception):
     pass
+
+
+def test():
+    bm3_wt = 'MTIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRLIKEACDESRF\
+    DKNLSQALKFVRDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQKWERLNADEHIEVPEDM\
+    TRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMVRALDEAMNKLQRANPDDPAYDENKRQFQEDIKVMNDLVDKIIADR\
+    KASGEQSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTSGLLSFALYFLVKNPHVLQKAAEEAARVLVDP\
+    VPSYKQVKQLKYVGMVLNEALRLWPTAPAFSLYAKEDTVLGGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPERF\
+    ENPSAIPQHAFKPFGNGQRACIGQQFALHEATLVLGMMLKHFDFEDHTNYELDIKETLTLKPEGFVVKAKSKKIPLGG\
+    IPSPSTEQSAKKVRKKGC*'.replace(' ','')
+
+
+    vina = Vina('../test/data/clean/3ben_clean.pdb',
+    acitve_site_aas = [47, 50, 51, 72, 75, 78, 82, 87, 181, 188, 263, 268, 328, 330])
+
+
+    scores, results  = vina.dock('cccccccc')
+    print(scores)
+    for i,  mol in enumerate(results):
+        mol.write('pdb', f'__{i}.pdb', overwrite=True)
+
+if __name__ == '__main__':
+    test()

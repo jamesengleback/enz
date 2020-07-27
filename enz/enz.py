@@ -4,13 +4,18 @@ import numpy as np
 from tqdm import  tqdm
 import multiprocessing
 import io
+
 import oddt
 from oddt import docking
+from oddt import scoring
+from oddt.scoring.functions import NNScore
+
 from biopandas.pdb import PandasPdb
 
 import pyrosetta
 
 from enz import tools # doesnt work in testiing
+from enz import NNScore_pdbbind2016.pickle
 
 
 class Protein():
@@ -100,6 +105,7 @@ class Vina():
         self.ncpus = ncpus
         self.exhaustiveness = exhaustiveness
         self.vina = self.init_vina()
+        self.nn = self.construct_nn()
 
     def init_vina(self):
         if self.acitve_site_aas != None:
@@ -175,6 +181,19 @@ class Vina():
         except:
             raise EnzError('Auto dock score failed')
             return None
+
+    def construct_nn(self):
+        nn = NNScore.nnscore()
+        nn = nn.load(NNScore_pdbbind2016.pickle)
+        nn.set_protein(self.oddt_receptor)
+        return nn
+
+    def nnscore(self, ligands):
+        if type(ligands) == oddt.toolkits.ob.Molecule:
+            score  = float(nn.predict_ligand(ligands).data['nnscore'])
+        elif type(ligands) == list:
+            score = nn.predict(ligands)
+        return score
 
     def dock(self, smiles, name=None, ncpu = None, score_fn = None, save = True):
         # set defaults

@@ -14,18 +14,21 @@ from biopandas.pdb import PandasPdb
 
 import pyrosetta
 
-from enz import tools # doesnt work in testiing
-from enz import NNScore_pdbbind2016.pickle
+import tools # doesnt work in testiing
+#from enz import NNScore_pdbbind2016.pickle
 
 
-class Protein():
+class protein():
     def __init__(self, pdb_path, seq = None):
         self.pdb_path = pdb_path
         self.cache = '__protein-cache__' # todo: resolve clashes
         os.makedirs(self.cache, exist_ok=True)
         self.clean_pdb()
         self.pdb_seq = tools.pdb_to_seq(os.path.join(self.cache,'clean.pdb'))
-        self.seq = seq if seq != None else tools.pdb_to_seq(self.pdb_path)
+        if seq != None:
+            self.seq = seq
+        else:
+            self.seq = self.pdb_seq
         self.map = tools.map_sequences(self.seq, self.pdb_seq)
 
     def clean_pdb(self):

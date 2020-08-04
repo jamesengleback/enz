@@ -19,6 +19,28 @@ import tools # doesnt work in testiing
 
 
 class protein():
+    '''
+    object for protein mutation and refolding
+    wraps a pyrosetta pose and some cleaning functions
+
+    params: pdb_path, sequence (optional)
+    # sequence used for canonical numbering
+
+    example:
+    import enz
+    seq = <canonical amino acid sequence>
+    prot = enz.protein(<pdb path>,seq) # initialise
+
+    prot.mutate_seq(87, 'V') #X87V
+
+    for i in [42, 46, 50, 264, 330]:
+        # alanine scan
+        prot.mutate_seq(i, 'A')
+
+    prot.refold() # currently: side-chain repacking; planned: loop & flexible region remodelling w/ cyclic coordinate descent
+
+    prot.dump('new.pdb') # save new structure
+    '''
     def __init__(self, pdb_path, seq = None):
         self.pdb_path = pdb_path
         self.cache = '__protein-cache__' # todo: resolve clashes
@@ -144,7 +166,7 @@ class Vina():
     def process_protein(self,prot):
         # type: pdb path, enz.protein.protein
         # return oddt object
-        if isinstance(prot, Protein):
+        if isinstance(prot, protein):
             oddt_protein = self.read_protein(prot)
         else:
             # assuming protein is pdb path

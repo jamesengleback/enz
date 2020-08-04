@@ -4,23 +4,53 @@ import numpy as np
 from tqdm import  tqdm
 import multiprocessing
 import io
+
 import oddt
 from oddt import docking
+from oddt import scoring
+from oddt.scoring.functions import NNScore
+
 from biopandas.pdb import PandasPdb
 
 import pyrosetta
 
-from enz import tools # doesnt work in testiing
+import tools # doesnt work in testiing
+#from enz import NNScore_pdbbind2016.pickle
 
 
-class Protein():
+class protein():
+    '''
+    object for protein mutation and refolding
+    wraps a pyrosetta pose and some cleaning functions
+
+    params: pdb_path, sequence (optional)
+    # sequence used for canonical numbering
+
+    example:
+    import enz
+    seq = <canonical amino acid sequence>
+    prot = enz.protein(<pdb path>,seq) # initialise
+
+    prot.mutate_seq(87, 'V') #X87V
+
+    for i in [42, 46, 50, 264, 330]:
+        # alanine scan
+        prot.mutate_seq(i, 'A')
+
+    prot.refold() # currently: side-chain repacking; planned: loop & flexible region remodelling w/ cyclic coordinate descent
+
+    prot.dump('new.pdb') # save new structure
+    '''
     def __init__(self, pdb_path, seq = None):
         self.pdb_path = pdb_path
         self.cache = '__protein-cache__' # todo: resolve clashes
         os.makedirs(self.cache, exist_ok=True)
         self.clean_pdb()
         self.pdb_seq = tools.pdb_to_seq(os.path.join(self.cache,'clean.pdb'))
-        self.seq = seq if seq != None else tools.pdb_to_seq(self.pdb_path)
+        if seq != None:
+            self.seq = seq
+        else:
+            self.seq = self.pdb_seq
         self.map = tools.map_sequences(self.seq, self.pdb_seq)
 
     def clean_pdb(self):
@@ -60,17 +90,17 @@ class Protein():
 
     def dump(self, path):
         if hasattr(self, 'pose'):
-            self.pose.dump_pdb(path)
+            self.pose.dump_pdb(os.path.expanduser(path))
         else:
             self.refold()
-            self.pose.dump_pdb(path)
-        self.check_dump(path)
+            self.pose.dump_pdb(os.path.expanduser(path))
+        self.check_dump(os.path.expanduser(path))
 
     def check_dump(self,path):
         # check if file ends with END,
         # add END if not
         # otherwise, oddt has trouble reading file
-        with open(path,'r') as f:
+        with open(os.path.expanduser(path),'r') as f:
             file = f.readlines()
         if 'END' not in file[-1]:
             # todo: check other lines for 'END'
@@ -100,6 +130,7 @@ class Vina():
         self.ncpus = ncpus
         self.exhaustiveness = exhaustiveness
         self.vina = self.init_vina()
+        self.nn = self.construct_nn()
 
     def init_vina(self):
         if self.acitve_site_aas != None:
@@ -135,7 +166,7 @@ class Vina():
     def process_protein(self,prot):
         # type: pdb path, enz.protein.protein
         # return oddt object
-        if isinstance(prot, Protein):
+        if isinstance(prot, protein):
             oddt_protein = self.read_protein(prot)
         else:
             # assuming protein is pdb path
@@ -176,6 +207,25 @@ class Vina():
             raise EnzError('Auto dock score failed')
             return None
 
+    def construct_nn(self):
+        '''
+        nn = NNScore.nnscore()
+        nn = nn.load(NNScore_pdbbind2016.pickle)
+        nn.set_protein(self.oddt_receptor)
+        return nn
+        '''
+        pass
+
+    def nnscore(self, ligands):
+        '''
+        if type(ligands) == oddt.toolkits.ob.Molecule:
+            score  = float(nn.predict_ligand(ligands).data['nnscore'])
+        elif type(ligands) == list:
+            score = nn.predict(ligands)
+        return score
+        '''
+        pass
+
     def dock(self, smiles, name=None, ncpu = None, score_fn = None, save = True):
         # set defaults
         if ncpu == None:
@@ -199,7 +249,7 @@ class Vina():
             if save:
                 # save scores
                 output_dir = os.path.join(self.cache, name)
-                os.makedirs(output_dir, exist_ok=True)
+                os.makedirs(os.path.expanduser(output_dir), exist_ok=True)
                 scores.to_csv(os.path.join(output_dir, 'scores.csv'))
 
                 # save docking poses

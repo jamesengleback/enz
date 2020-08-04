@@ -90,17 +90,17 @@ class protein():
 
     def dump(self, path):
         if hasattr(self, 'pose'):
-            self.pose.dump_pdb(path)
+            self.pose.dump_pdb(os.path.expanduser(path))
         else:
             self.refold()
-            self.pose.dump_pdb(path)
-        self.check_dump(path)
+            self.pose.dump_pdb(os.path.expanduser(path))
+        self.check_dump(os.path.expanduser(path))
 
     def check_dump(self,path):
         # check if file ends with END,
         # add END if not
         # otherwise, oddt has trouble reading file
-        with open(path,'r') as f:
+        with open(os.path.expanduser(path),'r') as f:
             file = f.readlines()
         if 'END' not in file[-1]:
             # todo: check other lines for 'END'
@@ -208,17 +208,23 @@ class Vina():
             return None
 
     def construct_nn(self):
+        '''
         nn = NNScore.nnscore()
         nn = nn.load(NNScore_pdbbind2016.pickle)
         nn.set_protein(self.oddt_receptor)
         return nn
+        '''
+        pass
 
     def nnscore(self, ligands):
+        '''
         if type(ligands) == oddt.toolkits.ob.Molecule:
             score  = float(nn.predict_ligand(ligands).data['nnscore'])
         elif type(ligands) == list:
             score = nn.predict(ligands)
         return score
+        '''
+        pass
 
     def dock(self, smiles, name=None, ncpu = None, score_fn = None, save = True):
         # set defaults
@@ -243,7 +249,7 @@ class Vina():
             if save:
                 # save scores
                 output_dir = os.path.join(self.cache, name)
-                os.makedirs(output_dir, exist_ok=True)
+                os.makedirs(os.path.expanduser(output_dir), exist_ok=True)
                 scores.to_csv(os.path.join(output_dir, 'scores.csv'))
 
                 # save docking poses

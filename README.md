@@ -1,39 +1,32 @@
 # Enzyme-design
-# Based on [**Small-molecule ligand docking into comparative models with Rosetta (2013)**](https://github.com/jamesengleback/BM3-Design-PyRosetta/blob/master/docs/rosetta-ligand-dock-2013.pdf)
+Based on [**Small-molecule ligand docking into comparative models with Rosetta (2013)**](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5750396/). ```enz``` is a thin wrapper for some structure prediction methods in ```pyrosetta``` and the autodock vina functionality in ```oddt```. ```enz``` is for enzyme design via rounds of mutant structure prediction  and substrate docking.
 
-# Aim - Homology structure prediction and Docking Tool
 # Usage
 ```python
-from enz import enz
+import enz
 
-path = 'data/clean/1jme_clean.pdb'
-wt = tools.fasta_to_series('bm3-wt.fasta')[0]
-bm3 = enz.Protein(pdb_path = 'data/clean/1jme_clean.pdb', seq = wt)
+p = enz.protein(pdb_path = '1jme.pdb') # optional: align sequence
 
-bm3.mutate_seq(82, 'F')
-bm3.mutate_seq(87, 'V')
-bm3.refold()
+p.mutate_seq(82, 'F')
+p.mutate_seq(87, 'V')
+p.refold()
+p.dump('A82F-F87V.pdb') # save
 
-# todo: bm3.dock(...)
-vina = enz.Vina(bm3)
-scores, results = vina.dock('c1ccccc', 'benzene')
-# scores = pd.DataFrame
-# results = [oddt.mol, ...]
+vina = enz.Vina(p) # init vina from enz.protein
+scores, results = vina.dock('c1ccccc', 'benzene') # scores: pd.DataFrame; results: [oddt.mol, ...] (poses)
+scores.to_clipboard()
 ```
 
 # install
 **From the installation folder**
 
-```conda env create -f env.yml```
+```conda env create -f env.yml # create virtual environment with dependencies```
 
 ```conda activate enz```
 
-```pip install .```
+```pip install . # install enz
+```
 
 
 # todo
-- setup.py
-- oddt rdkit instead of obabel
-- test on more examples
-- env
-- nnscore
+- loop & flexible region modelling

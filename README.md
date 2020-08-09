@@ -24,8 +24,7 @@ scores.to_clipboard()
 
 ```conda activate enz```
 
-```pip install . # install enz
-```
+```pip install . # install enz```
 
 
 # todo

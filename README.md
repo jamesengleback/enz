@@ -1,5 +1,5 @@
 # Enzyme-design
-Based on [**Small-molecule ligand docking into comparative models with Rosetta (2013)**](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5750396/). ```enz``` is a thin wrapper for some structure prediction methods in ```pyrosetta``` and the autodock vina functionality in ```oddt```. ```enz``` is for enzyme design via rounds of mutant structure prediction  and substrate docking.
+Based on [**Small-molecule ligand docking into comparative models with Rosetta (2013)**](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5750396/). ```enz``` is a thin wrapper for some structure prediction methods in ```pyrosetta``` and the autodock vina functionality in ```oddt```. ```enz``` is for enzyme design via rounds of mutant structure prediction  and substrate docking. 
 
 # Usage
 ```python

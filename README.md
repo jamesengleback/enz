@@ -54,23 +54,23 @@ vina = enz.Vina(p) # init vina from enz.protein
 scores, results = vina.dock('c1ccccc', 'benzene') # scores: pd.DataFrame; results: [oddt.mol, ...] (poses)
 scores.to_clipboard()
 ```
+### screen compound library
 
 ### alanine scan & dock with one substrate
 
 
-### screen compound library
-
-
-
-
 # install
 In the terminal:
-###
-### create & activate virtual environment with dependencies
-```conda env create -f env.yml```
+### clone repository:
+``` git clone https://github.com/UoMMIB/enz.git```
+### move into ```enz``` folder:
+``` cd enz```
 
+### create & activate virtual environment with dependencies (takes time):
+```conda env create -f env.yml```
+### activate:
 ```conda activate enz```
-### install enz
+### install enz:
 ```pip install . ```
 
 

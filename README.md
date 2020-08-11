@@ -22,7 +22,7 @@ enz.protein(pdb_path, seq=None) # initial params, seq optional
 ```
 
  ```enz.protein``` has 3 important methods:
- * ```.mutate_seq(<aa_num (int)>, <aa (str, capital)>)``` which mutates the sequence, ready for refolding
+ * ```.mutate(<aa_num (int)>, <aa (str, capital)>)``` which mutates the sequence, ready for refolding
  * ```.refold``` which finds all diffences between the desired sequence and the structure's sequence, and mutates the residues with side chain repacking within 5 A of the mutation site
  * ```.dump(<save file path>)``` saves the predicted structure as a ```.pdb``` file
 
@@ -54,12 +54,12 @@ import enz
 
 p = enz.protein(pdb_path = '1jme.pdb') # optional: align sequence
 
-p.mutate_seq(82, 'F')
-p.mutate_seq(87, 'V')
+p.mutate(82, 'F')
+p.mutate(87, 'V')
 p.refold()
 p.dump('A82F-F87V.pdb') # save
 
-vina = enz.Vina(p) # init vina from enz.protein
+vina = enz.vina(p) # init vina from enz.protein
 
 scores, results = vina.dock('c1ccccc', 'benzene') # scores: pd.DataFrame; results: [oddt.mol, ...] (poses)
 scores.to_clipboard()
@@ -82,7 +82,7 @@ YELDIKETLTLKPEGFVVKAKSKKIPLGGIPSPSTEQSAKKVRK*'
 
 p = enz.protein('3ben.pdb', seq=bm3WT) # align a sequence for canonical numbering
 
-vina = enz.Vina(p, acitve_site_aas = [400, 82, 87, 263, 188, 400, 330], exhaustiveness=16)
+vina = enz.vina(p, acitve_site_aas = [400, 82, 87, 263, 188, 400, 330], exhaustiveness=16)
 # initialise a vina object, narrow search space to some active site amino acids
 
 # save an empty dataframe with same format as 'scores'

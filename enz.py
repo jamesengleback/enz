@@ -14,7 +14,7 @@ from biopandas.pdb import PandasPdb
 
 import pyrosetta
 
-import tools # doesnt work in testiing
+import tools
 #from enz import NNScore_pdbbind2016.pickle
 
 
@@ -45,7 +45,7 @@ class protein():
         self.pdb_path = pdb_path
         self.cache = '__protein-cache__' # todo: resolve clashes
         os.makedirs(self.cache, exist_ok=True)
-        self.clean_pdb()
+        self._clean_pdb()
         self.pdb_seq = tools.pdb_to_seq(os.path.join(self.cache,'clean.pdb'))
         if seq != None:
             self.seq = seq
@@ -53,9 +53,9 @@ class protein():
             self.seq = self.pdb_seq
         self.map = tools.map_sequences(self.seq, self.pdb_seq)
 
-    def clean_pdb(self):
-        pdb = tools.clean_pdb(self.pdb_path)
-        path_to_clean_pdb = os.path.join(self.cache, 'clean.pdb')
+    def _clean_pdb(self):
+        pdb = tools._clean_pdb(self.pdb_path)
+        path_to__clean_pdb = os.path.join(self.cache, 'clean.pdb')
         pdb.to_pdb(path_to_clean_pdb)
         self.path_to_clean_pdb = path_to_clean_pdb # todo: move to tools
 
@@ -67,7 +67,7 @@ class protein():
         seq = ''.join(seq)
         self.seq = seq
 
-    def mutate_pose(self, pose):
+    def _mutate_pose(self, pose):
             # mutate at diff between self.seq and self.pdb_seq
             diff = tools.diff(self.pdb_seq,self.seq)
             for i in diff:
@@ -84,7 +84,7 @@ class protein():
         if hasattr(self,'path_to_clean_pdb'):
             pose = pyrosetta.pose_from_pdb(self.path_to_clean_pdb)
             # mutate
-            self.mutate_pose(pose)
+            self._mutate_pose(pose)
             # loop remodel
             self.pose = pose
 
@@ -94,9 +94,9 @@ class protein():
         else:
             self.refold()
             self.pose.dump_pdb(os.path.expanduser(path))
-        self.check_dump(os.path.expanduser(path))
+        self._check_dump(os.path.expanduser(path))
 
-    def check_dump(self,path):
+    def _check_dump(self,path):
         # check if file ends with END,
         # add END if not
         # otherwise, oddt has trouble reading file
@@ -122,19 +122,19 @@ class Vina():
 
         self.cache = '__vina-cache__'
         os.makedirs(self.cache, exist_ok=True)
-        self.oddt_receptor, self.cache_path = self.process_protein(protein)
+        self.oddt_receptor, self.cache_path = self._process_protein(protein)
 
         self.box_dims = box_dims
         self.center = center
         self.acitve_site_aas = acitve_site_aas
         self.ncpus = ncpus
         self.exhaustiveness = exhaustiveness
-        self.vina = self.init_vina()
+        self.vina = self._init_vina()
         self.nn = self.construct_nn()
 
-    def init_vina(self):
+    def _init_vina(self):
         if self.acitve_site_aas != None:
-            center, box_dims = self.get_centre_pdb()
+            center, box_dims = self._get_centre_pdb()
         else:
             center, box_dims = (0,0,0), (20,20,20)
         if self.ncpus == None:
@@ -149,8 +149,8 @@ class Vina():
         center=center)
         return vina
 
-    def get_centre_pdb(self):
-        pdb = PandasPdb().read_pdb(self.cache_path)
+    def _get_centre_pdb(self):
+        pdb = PandasPdb()._read_pdb(self.cache_path)
         df = pdb.df['ATOM']
         def get_CA(df, aa_num):
             aa = df.loc[df['residue_number']==aa_num,:]
@@ -163,26 +163,26 @@ class Vina():
         box_dimensions = (box_dims(coords,0), box_dims(coords,1), box_dims(coords,2))
         return center, box_dimensions
 
-    def process_protein(self,prot):
+    def _process_protein(self,prot):
         # type: pdb path, enz.protein.protein
         # return oddt object
         if isinstance(prot, protein):
-            oddt_protein = self.read_protein(prot)
+            oddt_protein = self._read_protein(prot)
         else:
             # assuming protein is pdb path
-            oddt_protein = self.read_pdb(prot)
+            oddt_protein = self._read_pdb(prot)
         path = os.path.join(self.cache, 'receptor.pdb')
         oddt_protein.write('pdb', path, overwrite=True)
         return oddt_protein, path
 
-    def read_protein(self,protein):
+    def _read_protein(self,protein):
         # if enz.protein: dump in cache
         path = os.path.join(self.cache, 'receptor.pdb')
         protein.dump(path) # save as pdb
-        oddt_protein = self.read_pdb(path)
+        oddt_protein = self._read_pdb(path)
         return oddt_protein
 
-    def read_pdb(self,path):
+    def _read_pdb(self,path):
         oddt_protein = next(oddt.toolkit.readfile('pdb', path))
         oddt_protein.protein = True # register that it's a protein
         oddt_protein.addh()
@@ -191,20 +191,19 @@ class Vina():
     def define_active_site(self):
         pass # todo
 
-    def read_smiles(self,smiles): # todo: move to tools
+    def _read_smiles(self,smiles): # todo: move to tools
         mol = oddt.toolkit.readstring('smi',smiles)
         mol.addh()
         mol.make3D()
         return mol
 
-    def autodock_score(self, results, vina):
+    def _autodock_score(self, results, vina):
         try:
             scores = pd.concat([pd.Series(i.data) for i in vina.score(results)],
             axis=1,
             join='outer').T
             return scores
         except:
-            raise EnzError('Auto dock score failed')
             return None
 
     def construct_nn(self):
@@ -231,7 +230,7 @@ class Vina():
         if ncpu == None:
             ncpu = multiprocessing.cpu_count() -1
         if score_fn == None:
-            score_fn = self.autodock_score
+            score_fn = self._autodock_score
         if name==None:
             name = 'noname'
 
@@ -241,8 +240,8 @@ class Vina():
 
         # main bit
         try:
-            results = self.vina.dock(self.read_smiles(smiles))
-            scores = self.autodock_score(results, self.vina)
+            results = self.vina.dock(self._read_smiles(smiles))
+            scores = self._autodock_score(results, self.vina)
             scores['cpd'] = name
 
             # save
@@ -260,12 +259,7 @@ class Vina():
 
             return scores, results
         except:
-            raise EnzError('Uh oh - error in docking - could be heavy atoms?')
-            return None, None
-
-
-class EnzError(Exception):
-    pass
+            pass
 
 
 def test():

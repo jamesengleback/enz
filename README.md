@@ -95,7 +95,7 @@ for name, smiles in zip(df['Drug Name'], df['SMILES']):
         scores.to_csv('fda-screen-results.csv', mode='a', header=False) # add to file (append mode)
     except:
         print('🤦') # handle errors
-          ```
+```
 ### alanine scan & dock with one substrate
 
 

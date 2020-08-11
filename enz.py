@@ -31,11 +31,11 @@ class protein():
     seq = <canonical amino acid sequence>
     prot = enz.protein(<pdb path>,seq) # initialise
 
-    prot.mutate_seq(87, 'V') #X87V
+    prot.mutate(87, 'V') #X87V
 
     for i in [42, 46, 50, 264, 330]:
         # alanine scan
-        prot.mutate_seq(i, 'A')
+        prot.mutate(i, 'A')
 
     prot.refold() # currently: side-chain repacking; planned: loop & flexible region remodelling w/ cyclic coordinate descent
 
@@ -54,12 +54,12 @@ class protein():
         self.map = tools.map_sequences(self.seq, self.pdb_seq)
 
     def _clean_pdb(self):
-        pdb = tools._clean_pdb(self.pdb_path)
-        path_to__clean_pdb = os.path.join(self.cache, 'clean.pdb')
+        pdb = tools.clean_pdb(self.pdb_path)
+        path_to_clean_pdb = os.path.join(self.cache, 'clean.pdb')
         pdb.to_pdb(path_to_clean_pdb)
         self.path_to_clean_pdb = path_to_clean_pdb # todo: move to tools
 
-    def mutate_seq(self, pos, aa):
+    def mutate(self, pos, aa):
         # only changes internal sequence
         # input: self.seq position ; amino acid letter
         seq = list(self.seq) # lists are mutable
@@ -111,7 +111,7 @@ class protein():
             with open(path,'w') as f:
                 f.writelines(file) # todo: move to tools
 
-class Vina():
+class vina():
     def __init__(self,
      protein = None,
      center = None,

@@ -82,7 +82,8 @@ YELDIKETLTLKPEGFVVKAKSKKIPLGGIPSPSTEQSAKKVRK*'
 
 p = enz.protein('3ben.pdb', seq=bm3WT) # align a sequence for canonical numbering
 
-vina = enz.Vina(p, acitve_site_aas = [400, 82, 87, 263, 188, 400, 330], exhaustiveness=16) # initialise a vina object, narrow search space to some active site amino acids
+vina = enz.Vina(p, acitve_site_aas = [400, 82, 87, 263, 188, 400, 330], exhaustiveness=16)
+# initialise a vina object, narrow search space to some active site amino acids
 
 # save an empty dataframe with same format as 'scores'
 pd.DataFrame([],columns = ['vina_affinity', 'vina_rmsd_lb', 'vina_rmsd_ub', 'vina_rmsd_input',

@@ -26,7 +26,7 @@ enz.protein(pdb_path, seq=None) # initial params, seq optional
  * ```.refold``` which finds all diffences between the desired sequence and the structure's sequence, and mutates the residues with side chain repacking within 5 A of the mutation site
  * ```.dump(<save file path>)``` saves the predicted structure as a ```.pdb``` file
 
-### ```enz.Vina```
+### ```enz.vina```
 ```enz.Vina``` wraps the ```oddt``` vina interface, which launches a VINA docking simulation. ```enz.Vina``` can be initialised from a ```.pdb``` file or from an ```enz.protein``` object.
 
 ```python
@@ -48,22 +48,31 @@ Behind the scenes, VINA sets up a box within the strucutre to simulate within, b
 
 # examples
 
-### simple mutate & dock benzene
+### simple mutate & save
+
 ```python
 import enz
 
-p = enz.protein(pdb_path = '1jme.pdb') # optional: align sequence
+bm3WT= 'MTIKEMPQPKTFGELKNLPLLNTDKPVQA\
+LMKIADELGEIFKFEAPGRVTRYLSSQRLIKEACDESRFDKNLSQALKFV\
+RDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQ\
+KWERLNADEHIEVPEDMTRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMV\
+RALDEAMNKLQRANPDDPAYDENKRQFQEDIKVMNDLVDKIIADRKASGE\
+QSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTSGLLSFALY\
+FLVKNPHVLQKAAEEAARVLVDPVPSYKQVKQLKYVGMVLNEALRLWPTA\
+PAFSLYAKEDTVLGGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPER\
+FENPSAIPQHAFKPFGNGQRACIGQQFALHEATLVLGMMLKHFDFEDHTN\
+YELDIKETLTLKPEGFVVKAKSKKIPLGGIPSPSTEQSAKKVRK*'
+
+
+p = enz.protein(pdb_path = '1jme.pdb', seq = bm3WT) # optional: align sequence for canonical numbering
 
 p.mutate(82, 'F')
 p.mutate(87, 'V')
 p.refold()
 p.dump('A82F-F87V.pdb') # save
-
-vina = enz.vina(p) # init vina from enz.protein
-
-scores, results = vina.dock('c1ccccc', 'benzene') # scores: pd.DataFrame; results: [oddt.mol, ...] (poses)
-scores.to_clipboard()
 ```
+
 ### screen compound library
 
 ```python
@@ -117,3 +126,5 @@ Make sure you have git installed
 
 # todo
 - loop & flexible region modelling
+- cache cleaning
+- nn score

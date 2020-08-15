@@ -116,7 +116,7 @@ class vina():
      protein = None,
      center = None,
      box_dims = None,
-     acitve_site_aas=None,
+     active_site_aas=None,
      ncpus=None,
      exhaustiveness=8):
 
@@ -126,14 +126,14 @@ class vina():
 
         self.box_dims = box_dims
         self.center = center
-        self.acitve_site_aas = acitve_site_aas
+        self.active_site_aas = active_site_aas
         self.ncpus = ncpus
         self.exhaustiveness = exhaustiveness
         self.vina = self._init_vina()
         self.nn = self.construct_nn()
 
     def _init_vina(self):
-        if self.acitve_site_aas != None:
+        if self.active_site_aas != None:
             center, box_dims = self._get_centre_pdb()
         else:
             center, box_dims = (0,0,0), (20,20,20)
@@ -150,13 +150,13 @@ class vina():
         return vina
 
     def _get_centre_pdb(self):
-        pdb = PandasPdb()._read_pdb(self.cache_path)
+        pdb = PandasPdb().read_pdb(self.cache_path)
         df = pdb.df['ATOM']
         def get_CA(df, aa_num):
             aa = df.loc[df['residue_number']==aa_num,:]
             CA = aa.loc[aa['atom_name'] == 'CA', ['x_coord', 'y_coord', 'z_coord']].values.reshape(-1)
             return CA
-        coords = np.array([get_CA(df, i) for i in self.acitve_site_aas])
+        coords = np.array([get_CA(df, i) for i in self.active_site_aas])
         center = coords.mean(axis=0)
         def box_dims(coords, dim):
             return np.abs((coords[:,0].min() - coords[:,0].max()))
@@ -198,6 +198,7 @@ class vina():
         return mol
 
     def _autodock_score(self, results, vina):
+        # miving to results obj
         try:
             scores = pd.concat([pd.Series(i.data) for i in vina.score(results)],
             axis=1,
@@ -240,46 +241,51 @@ class vina():
 
         # main bit
         try:
-            results = self.vina.dock(self._read_smiles(smiles))
-            scores = self._autodock_score(results, self.vina)
+            poses = self.vina.dock(self._read_smiles(smiles))
+            scores = self._autodock_score(poses, self.vina)
             scores['cpd'] = name
+            r = result(poses=poses, receptor=self.oddt_receptor, autodock_score=scores, name=name, dirname=name)
 
             # save
             if save:
-                # save scores
-                output_dir = os.path.join(self.cache, name)
-                os.makedirs(os.path.expanduser(output_dir), exist_ok=True)
-                scores.to_csv(os.path.join(output_dir, 'scores.csv'))
+                try:
+                    # save scores
+                    output_dir = os.path.join(self.cache, name)
+                    os.makedirs(os.path.expanduser(output_dir), exist_ok=True)
+                    scores.to_csv(os.path.join(output_dir, 'scores.csv'))
+                    r.save_poses(output_dir)
+                except:
+                    raise Exception('saving failed')
 
-                # save docking poses
-                for i,mol in enumerate(results):
-                    filename = f'vina-{name}-{i}.pdb' # need to have receptor name too
-                    path = os.path.join(output_dir,filename)
-                    mol.write('pdb',path,overwrite=True)
-
-            return scores, results
+            return r
         except:
+            raise Exception('docking failed')
             pass
 
+class result:
+    def __init__(self, poses, receptor, autodock_score, name, dirname):
+        self.poses = poses
+        self.autodock_score = autodock_score
+        self.name = name # compound
+        self.dirname = dirname
+        if not os.path.exists(dirname):
+            os.mkdir(dirname)
+
+    def save_poses(self):
+        for i,mol in enumerate(self.poses):
+            filename = f'vina-{self.name}-{i}.pdb' # need to have receptor name too
+            path = os.path.join(self.dirname,filename)
+            mol.write('pdb',path,overwrite=True)
+
+    def save_autodock_score(self,dirname):
+        pass
 
 def test():
-    bm3_wt = 'MTIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRLIKEACDESRF\
-    DKNLSQALKFVRDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQKWERLNADEHIEVPEDM\
-    TRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMVRALDEAMNKLQRANPDDPAYDENKRQFQEDIKVMNDLVDKIIADR\
-    KASGEQSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTSGLLSFALYFLVKNPHVLQKAAEEAARVLVDP\
-    VPSYKQVKQLKYVGMVLNEALRLWPTAPAFSLYAKEDTVLGGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPERF\
-    ENPSAIPQHAFKPFGNGQRACIGQQFALHEATLVLGMMLKHFDFEDHTNYELDIKETLTLKPEGFVVKAKSKKIPLGG\
-    IPSPSTEQSAKKVRKKGC*'.replace(' ','')
-
-
-    vina = Vina('../test/data/clean/3ben_clean.pdb',
-    acitve_site_aas = [47, 50, 51, 72, 75, 78, 82, 87, 181, 188, 263, 268, 328, 330])
-
-
-    scores, results  = vina.dock('cccccccc')
-    print(scores)
-    for i,  mol in enumerate(results):
-        mol.write('pdb', f'__{i}.pdb', overwrite=True)
+    path = 'test/data/raw/bm3/3ekf.pdb'
+    #p = protein(path)
+    #v = vina(p)
+    r = v.dock('CCCCCCCCCCCC=O')
+    print(r)
 
 if __name__ == '__main__':
     test()

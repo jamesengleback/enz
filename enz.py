@@ -240,27 +240,20 @@ class vina():
             self.vina = docking.autodock_vina(self.receptor, n_cpu = ncpu) # oddt.docking
 
         # main bit
-        try:
-            poses = self.vina.dock(self._read_smiles(smiles))
-            scores = self._autodock_score(poses, self.vina)
-            scores['cpd'] = name
-            r = result(poses=poses, receptor=self.oddt_receptor, autodock_score=scores, name=name, dirname=name)
+        poses = self.vina.dock(self._read_smiles(smiles))
+        scores = self._autodock_score(poses, self.vina)
+        scores['cpd'] = name
+        r = result(poses=poses, receptor=self.oddt_receptor, autodock_score=scores, name=name, dirname=name)
 
-            # save
-            if save:
-                try:
-                    # save scores
-                    output_dir = os.path.join(self.cache, name)
-                    os.makedirs(os.path.expanduser(output_dir), exist_ok=True)
-                    scores.to_csv(os.path.join(output_dir, 'scores.csv'))
-                    r.save_poses(output_dir)
-                except:
-                    raise Exception('saving failed')
+        # save
+        if save:
+            # save scores
+            output_dir = os.path.join(self.cache, name)
+            os.makedirs(os.path.expanduser(output_dir), exist_ok=True)
+            scores.to_csv(os.path.join(output_dir, 'scores.csv'))
+            r.save_poses(output_dir)
 
-            return r
-        except:
-            raise Exception('docking failed')
-            pass
+        return r
 
 class result:
     def __init__(self, poses, receptor, autodock_score, name, dirname):
@@ -271,7 +264,7 @@ class result:
         if not os.path.exists(dirname):
             os.mkdir(dirname)
 
-    def save_poses(self):
+    def save_poses(self, filename):
         for i,mol in enumerate(self.poses):
             filename = f'vina-{self.name}-{i}.pdb' # need to have receptor name too
             path = os.path.join(self.dirname,filename)

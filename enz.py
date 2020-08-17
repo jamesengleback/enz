@@ -88,7 +88,7 @@ class protein():
             # loop remodel
             self.pose = pose
 
-    def dump(self, path):
+    def save(self, path):
         if hasattr(self, 'pose'):
             self.pose.dump_pdb(os.path.expanduser(path))
         else:
@@ -178,7 +178,7 @@ class vina():
     def _read_protein(self,protein):
         # if enz.protein: dump in cache
         path = os.path.join(self.cache, 'receptor.pdb')
-        protein.dump(path) # save as pdb
+        protein.save(path) # save as pdb
         oddt_protein = self._read_pdb(path)
         return oddt_protein
 

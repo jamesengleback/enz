@@ -24,7 +24,7 @@ enz.protein(pdb_path, seq=None) # initial params, seq optional
  ```enz.protein``` has 3 important methods:
  * ```.mutate(<aa_num (int)>, <aa (str, capital)>)``` which mutates the sequence, ready for refolding
  * ```.refold``` which finds all diffences between the desired sequence and the structure's sequence, and mutates the residues with side chain repacking within 5 A of the mutation site
- * ```.dump(<save file path>)``` saves the predicted structure as a ```.pdb``` file
+ * ```.save(<save file path>)``` saves the predicted structure as a ```.pdb``` file
 
 ### ```enz.vina```
 ```enz.Vina``` wraps the ```oddt``` vina interface, which launches a VINA docking simulation. ```enz.Vina``` can be initialised from a ```.pdb``` file or from an ```enz.protein``` object.
@@ -70,7 +70,7 @@ p = enz.protein(pdb_path = '1jme.pdb', seq = bm3WT) # optional: align sequence f
 p.mutate(82, 'F')
 p.mutate(87, 'V')
 p.refold()
-p.dump('A82F-F87V.pdb') # save
+p.save('A82F-F87V.pdb')
 ```
 
 ### screen compound library
@@ -110,18 +110,12 @@ for name, smiles in zip(df['Drug Name'], df['SMILES']):
 
 
 # installation guide (terminal)
-### clone repository:
-Make sure you have git installed
-```$ git clone https://github.com/UoMMIB/enz.git```
-### move into ```enz``` folder:
-```$ cd enz```
 
-### create & activate virtual environment with dependencies (takes some time, make sure you have good internet connection):
-```$ conda env create -f env.yml```
-### activate:
-```$ conda activate enz```
-### install enz:
-```$ pip install . ```
+* clone enz: ```$ git clone https://github.com/UoMMIB/enz.git```
+* move into enz: ```$ cd enz```
+* create  virtual environment with dependencies: ```$ conda env create -f env.yml```
+* activate: ```$ conda activate enz```
+* install enz: ```$ pip install . ```
 
 
 # todo

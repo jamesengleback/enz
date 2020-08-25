@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import multiprocessing
 import io
+import random
+from string import ascii_lowercase
 
 import oddt
 from oddt import docking
@@ -43,7 +45,7 @@ class protein():
     '''
     def __init__(self, pdb_path, seq = None):
         self.pdb_path = pdb_path
-        self.cache = '__protein-cache__' # todo: resolve clashes
+        self.cache = '__enz-cache__/__protein-cache__' # todo: resolve clashes
         os.makedirs(self.cache, exist_ok=True)
         self._clean_pdb()
         self.pdb_seq = tools.pdb_to_seq(os.path.join(self.cache,'clean.pdb'))
@@ -120,7 +122,7 @@ class vina():
      ncpus=None,
      exhaustiveness=8):
 
-        self.cache = '__vina-cache__'
+        self.cache = '__enz-cache__/__vina-cache__'
         os.makedirs(self.cache, exist_ok=True)
         self.oddt_receptor, self.cache_path = self._process_protein(protein)
 
@@ -243,7 +245,7 @@ class vina():
         poses = self.vina.dock(self._read_smiles(smiles))
         scores = self._autodock_score(poses, self.vina)
         scores['cpd'] = name
-        r = result(poses=poses, receptor=self.oddt_receptor, autodock_score=scores, name=name, dirname=name)
+        r = result(poses=poses, receptor=self.oddt_receptor, autodock_score=scores, name=name)
 
         # save
         if save:
@@ -256,19 +258,19 @@ class vina():
         return r
 
 class result:
-    def __init__(self, poses, receptor, autodock_score, name, dirname):
+    def __init__(self, poses, receptor, autodock_score, name):
         # todo make coords df
         self.poses = poses
         self.autodock_score = autodock_score
         self.name = name # compound
-        self.dirname = dirname
-        if not os.path.exists(dirname):
-            os.mkdir(dirname)
+        self.unique_id = ''.join(random.sample(ascii_lowercase,16)) # todo: check unique
+        if not os.path.exists(os.path.join('__enz-cache__',self.unique_id)):
+            os.mkdir(os.path.join('__enz-cache__',self.unique_id)) # or os.makedirs ??
 
     def save_poses(self, filename):
         for i,mol in enumerate(self.poses):
             filename = f'vina-{self.name}-{i}.pdb' # need to have receptor name too
-            path = os.path.join(self.dirname,filename)
+            path = os.path.join(self.unique_id,filename)
             mol.write('pdb',path,overwrite=True)
 
     def save_autodock_score(self,dirname):
@@ -294,7 +296,7 @@ def test():
     p.refold()
     print('docking')
     v = vina(p)
-    r = v.dock('CCCCCCCCCCCC=O')
+    r = v.dock('c1cccccc1')
     print(r)
 
 if __name__ == '__main__':

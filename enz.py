@@ -1,19 +1,19 @@
 import os
 import pandas as pd
 import numpy as np
-from tqdm import  tqdm
 import multiprocessing
 import io
 
 import oddt
 from oddt import docking
 from oddt import scoring
-from oddt.scoring.functions import NNScore
+#from oddt.scoring.functions import NNScore
 
 from biopandas.pdb import PandasPdb
 
-import pyrosetta
-
+from pyrosetta import pose_from_pdb
+from pyrosetta import init as pyrosetta_init
+from pyrosetta.toolbox import mutate_residue
 import tools
 #from enz import NNScore_pdbbind2016.pickle
 
@@ -72,7 +72,7 @@ class protein():
             diff = tools.diff(self.pdb_seq,self.seq)
             for i in diff:
                 a,b, idx = diff[i]['from'], diff[i]['to'], self.map[i]
-                pyrosetta.toolbox.mutate_residue(pose, idx, b, pack_radius = 5.0)
+                mutate_residue(pose, idx, b, pack_radius = 5.0)
 
     def refold(self):
         '''
@@ -80,9 +80,9 @@ class protein():
         '''
         # n decoys?
         # n cpus?
-        pyrosetta.init(silent=True)
+        pyrosetta_init(silent=True)
         if hasattr(self,'path_to_clean_pdb'):
-            pose = pyrosetta.pose_from_pdb(self.path_to_clean_pdb)
+            pose = pose_from_pdb(self.path_to_clean_pdb)
             # mutate
             self._mutate_pose(pose)
             # loop remodel
@@ -257,6 +257,7 @@ class vina():
 
 class result:
     def __init__(self, poses, receptor, autodock_score, name, dirname):
+        # todo make coords df
         self.poses = poses
         self.autodock_score = autodock_score
         self.name = name # compound
@@ -273,10 +274,26 @@ class result:
     def save_autodock_score(self,dirname):
         pass
 
+    def geometric_score(self,prot_atom,lig_atom):
+        '''
+        EXPERIMENTAL do not keep
+
+        euclidean distance between atoms.
+        prot_atom: atom ID in pdb
+        lig_atom: atom id in canonical smiles
+        '''
+        prot_data = PandasPdb().read_pdb(p.path_to_clean_pdb) # move to protein
+        # test
+        fe  = data.df['HETATM'].loc[data.df['HETATM']['atom_name']=='FE',['x_coord','y_coord','z_coord']].sample() # 2 the same
+
+
 def test():
-    path = 'test/data/raw/bm3/3ekf.pdb'
-    #p = protein(path)
-    #v = vina(p)
+    p = protein('1jme.pdb')
+    p.mutate(72,'A')
+    print('refolding')
+    p.refold()
+    print('docking')
+    v = vina(p)
     r = v.dock('CCCCCCCCCCCC=O')
     print(r)
 

@@ -228,7 +228,7 @@ class vina():
         '''
         pass
 
-    def dock(self, smiles, name=None, ncpu = None, score_fn = None, save = True):
+    def dock(self, smiles, name=None, ncpu = None, score_fn = None, save = False):
         # set defaults
         if ncpu == None:
             ncpu = multiprocessing.cpu_count() -1
@@ -247,6 +247,7 @@ class vina():
         scores['cpd'] = name
         r = result(poses=poses, receptor=self.oddt_receptor, autodock_score=scores, name=name)
 
+        # todo: get rid of save in vina obj? in favour of save in results obj
         # save
         if save:
             # save scores
@@ -261,17 +262,32 @@ class result:
     def __init__(self, poses, receptor, autodock_score, name):
         # todo make coords df
         self.poses = poses
+        self.receptor = receptor
         self.autodock_score = autodock_score
         self.name = name # compound
-        self.unique_id = ''.join(random.sample(ascii_lowercase,16)) # todo: check unique
+        self.unique_id = 'result-' + ''.join(random.sample(ascii_lowercase,16)) # todo: check unique
+        self.cache = os.path.join('__enz-cache__',self.unique_id)
         if not os.path.exists(os.path.join('__enz-cache__',self.unique_id)):
-            os.mkdir(os.path.join('__enz-cache__',self.unique_id)) # or os.makedirs ??
+            # why would it exist anyway? get rid?
+            os.mkdir(self.cache) # or os.makedirs ??
+        self.cache_data(self.cache)
+        self.df = self.read_cache()
 
-    def save_poses(self, filename):
+
+
+    def cache_data(self, dirname):
+        self.receptor.write('pdb',os.path.join(dirname,'receptor.pdb'))
         for i,mol in enumerate(self.poses):
             filename = f'vina-{self.name}-{i}.pdb' # need to have receptor name too
-            path = os.path.join(self.unique_id,filename)
+            path = os.path.join(dirname,filename)
             mol.write('pdb',path,overwrite=True)
+
+    def read_cache(self):
+        # returns atom df
+        hetatms = pd.concat([PandasPdb().read_pdb(os.path.join(self.cache, i)).df['HETATM'] for i in os.listdir(self.cache)])
+        atoms = pd.concat([PandasPdb().read_pdb(os.path.join(self.cache,i)).df['ATOM'] for i in os.listdir(self.cache)])
+        return atoms.append(hetatms)
+
 
     def save_autodock_score(self,dirname):
         pass

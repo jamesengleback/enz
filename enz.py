@@ -270,23 +270,23 @@ class result:
         if not os.path.exists(os.path.join('__enz-cache__',self.unique_id)):
             # why would it exist anyway? get rid?
             os.mkdir(self.cache) # or os.makedirs ??
-        self.cache_data(self.cache)
-        self.df = self.read_cache()
+        self._cache_data(self.cache)
+        self.ligand_coords, self.receptor_coords = self._read_cache()
 
-
-
-    def cache_data(self, dirname):
+    def _cache_data(self, dirname):
         self.receptor.write('pdb',os.path.join(dirname,'receptor.pdb'))
         for i,mol in enumerate(self.poses):
             filename = f'vina-{self.name}-{i}.pdb' # need to have receptor name too
             path = os.path.join(dirname,filename)
             mol.write('pdb',path,overwrite=True)
 
-    def read_cache(self):
+    def _read_cache(self):
         # returns atom df
-        hetatms = pd.concat([PandasPdb().read_pdb(os.path.join(self.cache, i)).df['HETATM'] for i in os.listdir(self.cache)])
-        atoms = pd.concat([PandasPdb().read_pdb(os.path.join(self.cache,i)).df['ATOM'] for i in os.listdir(self.cache)])
-        return atoms.append(hetatms)
+        ligand_coords = {id:PandasPdb().read_pdb(os.path.join(self.cache, i)).df['HETATM'] for id,i in enumerate(os.listdir(self.cache)) if 'vina' in i}
+        receptor_obj = PandasPdb().read_pdb(os.path.join(self.cache,'receptor.pdb'))
+        receptor_coords = receptor_obj.df['ATOM'].append(receptor_obj.df['HETATM'])
+
+        return ligand_coords, receptor_coords
 
 
     def save_autodock_score(self,dirname):

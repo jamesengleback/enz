@@ -12,7 +12,7 @@ Based on [**Small-molecule ligand docking into comparative models with Rosetta (
 
 
 ### Description
- ```enz``` has two object types:
+🔨 under construction! 🔨 
 
 ### ```enz.protein```
  ```enz.protein```: contains the protein structure and interfaces with ```pyrosetta```. ```enz.protein``` can be initialised using a protein sequence as well as a structure, which is aligned to structure, allowing for canonical numbering or mutation be inserting new FASTA sequences. ```enz.protein``` automaticly cleans ```pdb``` structures by removing duplicated chains, water and non-cofactor ligands.
@@ -53,16 +53,7 @@ Behind the scenes, VINA sets up a box within the strucutre to simulate within, b
 ```python
 import enz
 
-bm3WT= 'MTIKEMPQPKTFGELKNLPLLNTDKPVQA\
-LMKIADELGEIFKFEAPGRVTRYLSSQRLIKEACDESRFDKNLSQALKFV\
-RDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQ\
-KWERLNADEHIEVPEDMTRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMV\
-RALDEAMNKLQRANPDDPAYDENKRQFQEDIKVMNDLVDKIIADRKASGE\
-QSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTSGLLSFALY\
-FLVKNPHVLQKAAEEAARVLVDPVPSYKQVKQLKYVGMVLNEALRLWPTA\
-PAFSLYAKEDTVLGGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPER\
-FENPSAIPQHAFKPFGNGQRACIGQQFALHEATLVLGMMLKHFDFEDHTN\
-YELDIKETLTLKPEGFVVKAKSKKIPLGGIPSPSTEQSAKKVRK*'
+bm3WT= 'MTIKEMPQPKTFGELKNLP...'
 
 
 p = enz.protein(pdb_path = '1jme.pdb', seq = bm3WT) # optional: align sequence for canonical numbering
@@ -76,35 +67,27 @@ p.save('A82F-F87V.pdb')
 ### screen compound library
 
 ```python
+import enz
+import pandas as pd
+import os
+
 df = pd.read_csv('fda.csv') # fda compound library
 
-bm3WT= 'MTIKEMPQPKTFGELKNLPLLNTDKPVQA\
-LMKIADELGEIFKFEAPGRVTRYLSSQRLIKEACDESRFDKNLSQALKFV\
-RDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQ\
-KWERLNADEHIEVPEDMTRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMV\
-RALDEAMNKLQRANPDDPAYDENKRQFQEDIKVMNDLVDKIIADRKASGE\
-QSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTSGLLSFALY\
-FLVKNPHVLQKAAEEAARVLVDPVPSYKQVKQLKYVGMVLNEALRLWPTA\
-PAFSLYAKEDTVLGGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPER\
-FENPSAIPQHAFKPFGNGQRACIGQQFALHEATLVLGMMLKHFDFEDHTN\
-YELDIKETLTLKPEGFVVKAKSKKIPLGGIPSPSTEQSAKKVRK*'
+bm3WT= 'MTIKEMPQPKTFGELKNL...'
 
 p = enz.protein('3ben.pdb', seq=bm3WT) # align a sequence for canonical numbering
 
-vina = enz.vina(p, acitve_site_aas = [400, 82, 87, 263, 188, 400, 330], exhaustiveness=16)
+vina = enz.vina(p, active_site_aas = [400, 82, 87, 263, 188, 400, 330], exhaustiveness=16)
 # initialise a vina object, narrow search space to some active site amino acids
 
-# save an empty dataframe with same format as 'scores'
-pd.DataFrame([],columns = ['vina_affinity', 'vina_rmsd_lb', 'vina_rmsd_ub', 'vina_rmsd_input',
-   'vina_rmsd_input_min', 'vina_gauss1', 'vina_gauss2', 'vina_repulsion',
-   'vina_hydrophobic', 'vina_hydrogen', 'SMILES Atom Order', 'cpd']).to_csv('fda-screen-results.csv')
 
 for name, smiles in zip(df['Drug Name'], df['SMILES']):
-    try:
-        scores, poses = vina.dock(smiles,name)
-        scores.to_csv('fda-screen-results.csv', mode='a', header=False) # add to file (append mode)
-    except:
-        print('🤦') # handle errors
+    results= vina.dock(smiles,name)
+    scores = results.autodock_score # results also contains coordinates of poses
+    if os.path.exists('fda-screen-results.csv'):
+	results.autodock_score.to_csv('fda-screen-results.csv', mode='a', header=False) # add to file (append mode)
+    else:
+	results.autodock_score.to_csv('fda-screen-results.csv') # new file (first run)
 ```
 ### alanine scan & dock with one substrate
 

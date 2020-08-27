@@ -6,6 +6,8 @@
 - clean test dirs
 
 ## dev priority 2
+- clean cache dirs (e.g. noname; __vina__ -> __enz__)
+- rm alignment after folding
 - loop modelling
 - docking score - custom
 - validate docking - pdb

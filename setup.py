@@ -1,8 +1,7 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name = 'enz',
-version=0.12,
-include_package_data=True,
+version=0.2,
 description='enzyme design',
 author='james engleback',
-packages=['.'])
+packages = find_packages())

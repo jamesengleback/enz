@@ -156,7 +156,7 @@ class vina():
         scores.to_csv(os.path.join(self.CACHE, 'vinaScores.csv'))
         return scores
     def save(self, path):
-        shutil.copytree(self.CACHE, path, dirs_exist_ok=True)
+        shutil.copytree(self.CACHE, path)
 
 def aln(s1, s2):
     aln = global_pairwise_align_protein(skbioProtein(s1),skbioProtein(s2))[0]

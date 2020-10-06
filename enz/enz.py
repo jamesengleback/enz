@@ -65,9 +65,11 @@ class protein:
     def refold(self):
         aln1, aln2 = aln(self.seq, self.PDBSEQ)
         mutations = diff(aln1, aln2)
-        if  not PYROSETTA_INIT:
-            pyrosetta_init(silent=True)
-            PYROSETTA_INIT = True
+        # todo - check pyrosetta isnt already init
+        # problem - variable scope
+        #if  not PYROSETTA_INIT:
+        #    PYROSETTA_INIT = True
+        pyrosetta_init(silent=True)
         self.pose = pose_from_pdb(self.STRUCTURE)
         for i in mutations:
             mutate_residue(self.pose, i, mutations[i]['to'], pack_radius = 5.0)

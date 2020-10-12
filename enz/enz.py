@@ -65,11 +65,9 @@ class protein:
     def refold(self):
         aln1, aln2 = aln(self.seq, self.PDBSEQ)
         mutations = diff(aln1, aln2)
-        # todo - check pyrosetta isnt already init
-        # problem - variable scope
-        #if  not PYROSETTA_INIT:
-        #    PYROSETTA_INIT = True
-        pyrosetta_init(silent=True)
+        if  not PYROSETTA_INIT:
+            pyrosetta_init(silent=True)
+            PYROSETTA_INIT = True
         self.pose = pose_from_pdb(self.STRUCTURE)
         for i in mutations:
             mutate_residue(self.pose, i, mutations[i]['to'], pack_radius = 5.0)
@@ -158,7 +156,7 @@ class vina():
         scores.to_csv(os.path.join(self.CACHE, 'vinaScores.csv'))
         return scores
     def save(self, path):
-        shutil.copytree(self.CACHE, path)
+        shutil.copytree(self.CACHE, path, dirs_exist_ok=True)
 
 def aln(s1, s2):
     aln = global_pairwise_align_protein(skbioProtein(s1),skbioProtein(s2))[0]

@@ -25,18 +25,20 @@ def test_protein():
     p.save_docking_results('results')
 
 
-def test_vina():
+def test_vina_pdb():
     pdb = '../data/1jme.pdb'
     v = enz.vina(pdb)
     v.dock('CCCC=O')
     print(v.df)
     v.save('results2')
 
-
+def test_vina_enz_protein():
+    pdb = '../data/4key.pdb'
+    p = enz.protein(pdb, seq = seq, key_sites = [82,87,188,330])
+    print(p.dock('CCC1=CN=C(C=C1)CCOC2=CC=C(C=C2)CC3C(=O)NC(=O)S3'))
 
 def main():
-    test_protein()
-    test_vina()
+    test_vina_enz_protein()
 
 
 

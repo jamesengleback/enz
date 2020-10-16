@@ -34,11 +34,16 @@ def test_vina_pdb():
 
 def test_vina_enz_protein():
     pdb = '../data/4key.pdb'
-    p = enz.protein(pdb, seq = seq, key_sites = [82,87,188,330])
+    p = enz.protein(pdb, seq = seq, key_sites = [82,87,188,330,75,181,49,51], cofactors = ['HEM'])
     print(p.dock('CCC1=CN=C(C=C1)CCOC2=CC=C(C=C2)CC3C(=O)NC(=O)S3'))
 
+def pdb_cleaning():
+    pdb = '../data/4key.pdb'
+    p = enz.protein(pdb, seq = seq, key_sites = [82,87,188,330,75,181,49,51], cofactors = ['HEM'])
+    print(p.df)
+
 def main():
-    test_vina_enz_protein()
+    pdb_cleaning()
 
 
 

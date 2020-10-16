@@ -29,12 +29,14 @@ class protein:
                 pdb = None,
                 seq = None,
                 key_sites = {},
-                chain=None):
+                chain=None,
+                cofactors = []):
         # TODO: select chain
         self.PDB = os.path.abspath(pdb)
         self.ID = uniqueID()
         self.CACHE = tempfile.mkdtemp(prefix='enzp-')
         self.STRUCTURE =  os.path.join(self.CACHE, self.ID + '.pdb') # path
+        self.COFACTORS = cofactors
         self._cleanPDB() # save to self.STRUCTURE
         self.seq = self.PDBSEQ if seq == None else seq # self.pdbSeq set in self._cleanPDB
         self.KEY_SITES = {i:self.seq[i] for i in key_sites}
@@ -54,8 +56,16 @@ class protein:
         atoms = data.df['ATOM']
         hetatms = data.df['HETATM']
         firstChain = atoms['chain_id'].unique()[0]
-        data.df['ATOM'] = atoms.loc[atoms['chain_id'] == firstChain,:]
-        data.df['HETATM'] = hetatms.loc[hetatms['residue_name'] != 'HOH',:].loc[hetatms['chain_id'] == firstChain,:]
+        atoms = atoms.loc[atoms['chain_id'] == firstChain,:]
+        hetatms = hetatms.loc[hetatms['residue_name'] != 'HOH',:].loc[hetatms['chain_id'] == firstChain,:]
+        print('HETATMs:')
+        for i in hetatms['residue_name'].unique():
+            included = 'included' if i in self.COFACTORS else 'not included'
+            print(f'{i} - ({included})')
+        if len(self.COFACTORS) > 0:
+            hetatms= pd.concat([hetatms.loc[hetatms['residue_name'] == i,:].loc[hetatms['chain_id'] == firstChain,:] for i in self.COFACTORS])
+        data.df['HETATM'] = hetatms
+        data.df['ATOM'] = atoms
         data.to_pdb(self.STRUCTURE)
         self.PDBSEQ = ''.join([i for i in data.amino3to1()['residue_name']]) # PDBSEQ
     def mutate(self, idx, aa):
@@ -156,7 +166,7 @@ class vina():
         scores.to_csv(os.path.join(self.CACHE, 'vinaScores.csv'))
         return scores
     def save(self, path):
-        shutil.copytree(self.CACHE, path, dirs_exist_ok=True)
+        shutil.copytree(self.CACHE, path)
 
 def aln(s1, s2):
     aln = global_pairwise_align_protein(skbioProtein(s1),skbioProtein(s2))[0]

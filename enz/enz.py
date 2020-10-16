@@ -159,7 +159,7 @@ class vina():
                         self._read_pdb(self.STRUCTURE))], axis=1, join='outer').T # ValueError: No objects to concatenate
         newIdx = []
         for i,(pose,score) in enumerate(zip(poses, scores['vina_affinity'])):
-            savepath = os.path.join(self.CACHE, f'pose-{uniqueID()}:aff{score}.pdb')
+            savepath = os.path.join(self.CACHE, f'pose:aff:{score}-{uniqueID()}.pdb')
             pose.write('pdb', savepath)
             newIdx.append(savepath)
         scores['path'] = newIdx

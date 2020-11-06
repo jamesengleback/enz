@@ -33,11 +33,18 @@ p.save_docking_results('docking_results') # save .pdb structures in new dir dock
 ```
 
 # install from command line
-
+Install pyrosetta - download [here](http://www.pyrosetta.org/dow) - requires a "username" and "password", which are sent to you when yyou apply for a license. Make sure you get the right version for your machine. It shouldn't matter too much what version of python the pyrosetta distribution is for. Note that the download is really slow. On macOSX / linux, pyrosetta is distrubuted as a ```.tar.bz2``` archive. You can decompress these like this:
+```bash
+tar xfvj pypy3.7-v7.3.2-linux64.tar.bz2
+```
+then install by ```cd```'ing into ```PyRosetta4.Release.python37.linux.release-269/setup``` and running:
+```bash
+pip install .
+```
+```cd``` it where you want to download ```enz``` to
+Clone enz to your machine:
 ```bash
 git clone https://github.com/UoMMIB/enz.git
 cd enz
-conda env create -f env.yml
-conda activate enz
-pip install .
 ```
+

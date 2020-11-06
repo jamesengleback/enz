@@ -16,20 +16,24 @@ from pyrosetta import init as pyrosetta_init
 from pyrosetta.toolbox import mutate_residue
 
 PYROSETTA_INIT = False
+pybel.ob.obErrorLog.SetOutputLevel(0)
 
 class mol:
-    def __init__(self, path):
-        pass
+    def __init__(self, pdb_path):
+        self.pdb_path = pdb_path
     @property
     def df(self):
-        pass
-    def save(self, path):
-        pass
+        data = PandasPdb().read_pdb(self.struc)
+        return data.df['ATOM'].append(data.df['HETATM'])
+    def save(self, save_path):
+        shutil.copyfile(self.pdb_path, save_path)
 
-class protein:
+
+class protein(mol):
     # front end
     def __init__(self, pdb_path, seq = None, cofactors = [], key_sites = []):
-        self.pdb_path = pdb_path
+        super().__init__(pdb_path)
+        # self.pdb_path = pdb_path
         self.CACHE = tempfile.mkdtemp()
         self.key_sites = key_sites
         self.cofactors = cofactors
@@ -38,16 +42,15 @@ class protein:
                     cofactors = self.cofactors)
         self.pdb_seq = pdb_fns.get_seq(self.struc)
         self.seq = self.pdb_seq if seq == None else seq
-    @property
-    def df(self):
-        pass
+
     def mutate(self, position, aa):
         seq = list(self.seq)
         seq[position] = aa
         self.seq = ''.join(seq)
+    
     def refold(self):
-        aln1, aln2 = aln(self.pdb_seq, self.seq)
-        mutations = diff(aln1, aln2)
+        aln1, aln2 = utils.aln(self.pdb_seq, self.seq)
+        mutations = utils.diff(aln1, aln2)
         global PYROSETTA_INIT
         if  not PYROSETTA_INIT:
             pyrosetta_init(silent=True)
@@ -56,16 +59,16 @@ class protein:
         for i in mutations:
             mutate_residue(self.pose, i, mutations[i]['to'], pack_radius = 5.0)
         self.pose.dump_pdb(self.struc)
-    def save(self, path):
-        # copy self.stuc -> path
-        shutil.copyfile(self.struc, path)
-    def dock(self, smiles, save_path = None):
-        df = vina.dock(self.struc,
+    
+    def dock(self, smiles, save_path = None, target_residues = None):
+        if target_residues == None:
+            target_residues = self.key_sites
+        results = vina.dock(self.struc,
                     smiles,
                     save_path = save_path,
                     cofactors = self.cofactors,
-                    target_residues = self.key_sites)
-        return df
+                    target_residues = target_residues)
+        return results
 
 class pdb_fns:
     def clean_pdb(pdb_path, save_path, cofactors = [], chain_selection = 'A'):
@@ -80,11 +83,13 @@ class pdb_fns:
         structure.df['HETATM'] = hetatms
         structure.to_pdb(save_path)
         return save_path
+
     def get_seq(pdb_path):
         structure = PandasPdb().read_pdb(pdb_path)
         sequences = structure.amino3to1() # cols = ['chain_id', 'residue_name']
         seqs = [''.join(sequences.loc[sequences['chain_id'] == i,'residue_name'].to_list()) for i in sequences['chain_id'].unique()]
         return seqs[0] if len(seqs) == 1 else seqs
+
     def draw_box(pdb_path, key_sites):
         receptor = PandasPdb().read_pdb(pdb_path)
         df = receptor.df['ATOM']
@@ -108,12 +113,21 @@ class obabel_fns:
         m.addh()
         m.write('pdbqt', save_path, opt={'r':True}, overwrite=True) # opt:r = rigid - less errors?? - revisit this
         return save_path
+
     def smiles_to_pdbqt(smiles, save_path):
         m = pybel.readstring('smi',smiles)
         m.addh()
         m.make3D()
         m.write('pdbqt',save_path)
         return save_path
+
+    def pdbqt_to_pdb(pdbqt, save_path):
+        m = list(pybel.readfile('pdbqt',pdbqt))
+        assert len(m) == 1
+        m = m[0]
+        # already 3d
+        m.write('pdb', save_path)
+
 
 class vina:
     def dock(receptor_pdb,
@@ -124,47 +138,51 @@ class vina:
             exhaustiveness=8,
             vina_executable = find_executable('vina'),
             vina_split_executable = find_executable('vina_split')):
+        # check there's a box
+        if target_residues == []:
+            raise Exception('no target residues selected')
+
         CACHE = tempfile.mkdtemp()
         raw_vina_results = os.path.join(CACHE, 'vina.result')
-        # todo : if not clean
-        clean_receptor_pdb = pdb_fns.clean_pdb(receptor_pdb, os.path.join(CACHE, f'{os.path.basename(receptor_pdb)}.clean'), cofactors = cofactors)
+        # todo : if not clean  - check if dock from protein object
+        clean_receptor_pdb = pdb_fns.clean_pdb(receptor_pdb, os.path.join(CACHE, f'{os.path.basename(receptor_pdb)}.clean'),
+                                                                            cofactors = cofactors)
         receptor_pdbqt = obabel_fns.pdb_to_pdbqt(clean_receptor_pdb, os.path.join(CACHE,'receptor.pdbqt'))
         ligand_pdbqt = obabel_fns.smiles_to_pdbqt(smiles, os.path.join(CACHE,'ligand.pdbqt'))
         args = {'--receptor':receptor_pdbqt,
                     '--ligand':ligand_pdbqt,
                     '--out':raw_vina_results,
                     '--exhaustiveness':exhaustiveness}
-        args.update(pdb_fns.draw_box(clean_receptor_pdb, target_residues))
+        args.update(pdb_fns.draw_box(clean_receptor_pdb, target_residues)) # add box dims to args
+
         args_list_vina = [vina_executable]
         for i in args:
             args_list_vina.append(i)
             args_list_vina.append(str(args[i]))
+
         # execute
         p1 = subprocess.check_output(args_list_vina)
+        
+        # create results object
         docking_scores = vina.extract_scores(p1.decode())
-        if save_path != None:
-            vina.split(raw_vina_results,
-                        save_path,
-                        vina_split_executable)
-        return docking_scores
+        poses = vina.vina_split(raw_vina_results, vina_split_executable)
+        results = vina.results([os.path.join(poses, i) for i in os.listdir(poses)], docking_scores)
+        
+        return results
 
-    def split(vina_output, save_path, vina_split_executable):
+    def vina_split(raw_vina_results, vina_split_executable):
         # vina_split
-        args_list_vina_split = [vina_split_executable, '--input', outpath]
-        p2 = subprocess.Popen(args_list_vina_split, stdout=subprocess.DEVNULL)
-        p2.wait()
-        # convert pdbqt files
-        docking_poses_pdbqt = [os.path.join(CACHE,i) for i in os.listdir(CACHE) if 'vina_ligand_' in i]
-        docking_poses_pdb = [save_pose(i, os.path.join(CACHE, f'pose_{j}.pdb')) for j,i in enumerate(docking_poses_pdbqt)]
-        # move to savepath
-        os.makedirs(save_path, exist_ok=True)
-        # remove existing contents
-        for i in os.listdir(save_path):
-            os.remove(os.path.join(save_path,i))
-        for i in docking_poses_pdb:
-            shutil.copyfile(i, os.path.join(save_path, os.path.basename(i))) # copy to inside savepath dir
-        shutil.copyfile(clean_receptor_pdb, os.path.join(save_path, os.path.basename(clean_receptor_pdb)))
-        docking_scores.to_csv(os.path.join(save_path, 'docking-scores.csv')) # and save scores
+        args_list_vina_split = [vina_split_executable, '--input', raw_vina_results]
+        p = subprocess.Popen(args_list_vina_split, stdout=subprocess.DEVNULL)
+        p.wait() # outputs odbqt files
+        results_dir = os.path.dirname(raw_vina_results)
+        poses = [os.path.join(results_dir, i) for i in os.listdir(results_dir) if 'vina.result_ligand' in i]
+        clean_results = os.path.join(results_dir, 'pose_pdbs')
+        os.mkdir(clean_results)
+        for i in poses:
+            save_path = os.path.basename(i).replace('pdbqt','pdb')
+            obabel_fns.pdbqt_to_pdb(i, os.path.join(clean_results, save_path))
+        return clean_results # path to foder containing pdb of poses
 
     def extract_scores(text):
         # extract scores from vina output
@@ -178,19 +196,26 @@ class vina:
                 table.append(dict(zip(['mode','affinity (kcal/mol)', 'dist from best mode - rmsd - ub','dist from best mode - lb'], items)))
         return pd.DataFrame(table)
 
-def aln(s1,s2):
-    return nw.global_align(s1,s2)
-
-def diff(s1,s2):
-    return {i:{'from':x, 'to':y} for i, (x,y) in enumerate(zip(s1,s2)) if x != y and x != '-' and y != '-'}
+    class results:
+        def __init__(self, poses, scores):
+            self.poses = [mol(i) for i in poses]
+            self.scores = scores.astype(float)
+            self.dictionary = {os.path.basename(i.pdb_path):{'mol':i, 'affinity':j} for i,j in zip(self.poses, self.scores['affinity (kcal/mol)'])}
+        def save(self, save_path):
+            os.makedirs(save_path, exist_ok = True)
+            self.scores.to_csv(os.path.join(save_path, 'scores.csv'))
+            for i in self.poses:
+                i.save(os.path.join(save_path, os.path.basename(i.pdb_path)))
 
 def test():
+    bmw_wt = 'TIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRLIKEACDESRFDKNLSQALKFVRDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQKWERLNADEHIEVPEDMTRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMVRALDEAMNKLQRANPDDPAYDENKRQFQEDIKVMNDLVDKIIADRKASGEQSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTSGLLSFALYFLVKNPHVLQKAAEEAARVLVDPVPSYKQVKQLKYVGMVLNEALRLWPTAPAFSLYAKEDTVLGGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPERFENPSAIPQHAFKPFGNGQRACIGQQFALHEATLVLGMMLKHFDFEDHTNYELDIKETLTLKPEGFVVKAKSKKIPLGGIPSPSTEQSAKKVRK*'
     path = '../test/4KEY.pdb'
-    p = protein(path, cofactors = 'HEM', key_sites = [87,82,400,330,263,188,49,51])
-    p.mutate(70,'A')
-    p.refold()
-    p.save('test.pdb')
-    print(p.dock('CCCCCCCCCCCC=O', 'results'))
+    smiles = 'CCCCCCCC=O'
+    p = protein(path, cofactors = ['HEM'])
+    r = p.dock(smiles, target_residues = [82,87,400,188,181,263])
+    r.save('../test../test//test')
+    print(r.dictionary)
 
 if __name__ == '__main__':
     test()
+

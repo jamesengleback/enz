@@ -1,3 +1,4 @@
+#!/bin/bash
 # download pyrosetta
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 	# pyrosetta python 3.8
@@ -25,7 +26,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
   -H 'Range: bytes=1523712-1523712' \
   -H 'If-Range: "3dbdec97-5b328ad977000"' \
   --compressed  --output ~/pyrosetta38
-
+fi
 cd ~/pyrosetta38/setup
 pip install .
 

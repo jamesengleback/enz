@@ -72,6 +72,7 @@ class protein(mol):
                     save_path = save_path,
                     cofactors = self.cofactors,
                     target_residues = target_residues)
+        results.receptor = self
         return results
 
 class pdb_fns:
@@ -210,16 +211,27 @@ class vina:
             self.scores.to_csv(os.path.join(save_path, 'scores.csv'))
             for i in self.poses:
                 i.save(os.path.join(save_path, os.path.basename(i.pdb_path)))
+            self.receptor.save(os.path.join(save_path, 'receptor.pdb'))
+
+class utils:
+    def aln(s1, s2):
+        aln1, aln2 = nw.global_align(s1,s2)
+        return aln1, aln2
+
+    def diff(s1,s2):
+        return {i:{'from':x, 'to':y} for i, (x,y) in enumerate(zip(s1,s2)) if x != y and x != '-' and y != '-'}
+
 
 def test():
     bmw_wt = 'TIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRLIKEACDESRFDKNLSQALKFVRDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQKWERLNADEHIEVPEDMTRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMVRALDEAMNKLQRANPDDPAYDENKRQFQEDIKVMNDLVDKIIADRKASGEQSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTSGLLSFALYFLVKNPHVLQKAAEEAARVLVDPVPSYKQVKQLKYVGMVLNEALRLWPTAPAFSLYAKEDTVLGGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPERFENPSAIPQHAFKPFGNGQRACIGQQFALHEATLVLGMMLKHFDFEDHTNYELDIKETLTLKPEGFVVKAKSKKIPLGGIPSPSTEQSAKKVRK*'
-    path = '../test/4KEY.pdb'
+    path = '../data/4key.pdb'
     smiles = 'CCCCCCCC=O'
-    p = protein(path, cofactors = ['HEM'])
+    p = protein(path, cofactors = ['HEM'], seq=bmw_wt)
+    #p.mutate(82,'F')
+    #p.refold()
     r = p.dock(smiles, target_residues = [82,87,400,188,181,263])
-    r.save('../test../test//test')
-    print(r.dictionary)
-
+    print(r)
+    r.save('test')
 if __name__ == '__main__':
     test()
 

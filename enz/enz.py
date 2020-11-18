@@ -18,6 +18,10 @@ from pyrosetta.toolbox import mutate_residue
 PYROSETTA_INIT = False
 pybel.ob.obErrorLog.SetOutputLevel(0)
 
+'''
+todo 
+  - results object could be simpler
+'''
 class mol:
     def __init__(self, pdb_path):
         self.pdb_path = pdb_path

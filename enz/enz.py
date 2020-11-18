@@ -19,25 +19,41 @@ PYROSETTA_INIT = False
 pybel.ob.obErrorLog.SetOutputLevel(0)
 
 class mol:
-    def __init__(self, pdb_path):
-        self.pdb_path = pdb_path
+    '''
+    protein & results poses inherit from this class
+    '''
+    def __init__(self, struc):
+        self.struc = struc
     @property
     def df(self):
         data = PandasPdb().read_pdb(self.struc)
-        return data.df['ATOM'].append(data.df['HETATM'])
+        return data.df['ATOM'].append(data.df['HETATM']) # all atoms
     def save(self, save_path):
-        shutil.copyfile(self.pdb_path, save_path)
+        shutil.copyfile(self.struc, save_path)
 
 
 class protein(mol):
-    # front end
-    def __init__(self, pdb_path, seq = None, cofactors = [], key_sites = []):
-        super().__init__(pdb_path)
-        # self.pdb_path = pdb_path
-        self.CACHE = tempfile.mkdtemp()
+    '''
+    stores clean protein sequence & structure
+    cleaning removes waters and hetatm residues not in cofactors
+    used for mutant structre prediction and small molecule docking
+    example:
+    >>> import enz
+    >>> wt = 'MTIKEM...'
+    >>> 
+    >>> for i in [75,87,330, 263]:
+    >>>    p = enz.protein('enz/data/4key.pdb', seq=wt)
+    >>>    p.mutate(i, 'A') # alanine scan
+    >>>    r = p.dock('CCCCCCC=O', target_residues=[82,87,330,400,51]) # specify docking site
+    >>>    r.save(f'bm3_{p.seq[i]}iA') # e.g. bm3_F87A
+
+    '''
+    def __init__(self, struc, seq = None, cofactors = [], key_sites = []):
+        super().__init__(struc)
         self.key_sites = key_sites
         self.cofactors = cofactors
-        self.struc = pdb_fns.clean_pdb(pdb_path = self.pdb_path,
+        self.CACHE = tempfile.mkdtemp()
+        self.struc = pdb_fns.clean_pdb(struc = self.struc,
                     save_path = os.path.join(self.CACHE, 'clean.pdb'),
                     cofactors = self.cofactors)
         self.pdb_seq = pdb_fns.get_seq(self.struc)
@@ -55,7 +71,7 @@ class protein(mol):
         if  not PYROSETTA_INIT:
             pyrosetta_init(silent=True)
             PYROSETTA_INIT = True
-        self.pose = pose_from_pdb(self.struc)
+        self.pose = pose_from_pdb(self.struc) # pyrosetta
         for i in mutations:
             mutate_residue(self.pose, i, mutations[i]['to'], pack_radius = 5.0)
         self.pose.dump_pdb(self.struc)
@@ -72,8 +88,8 @@ class protein(mol):
         return results
 
 class pdb_fns:
-    def clean_pdb(pdb_path, save_path, cofactors = [], chain_selection = 'A'):
-        structure = PandasPdb().read_pdb(pdb_path)
+    def clean_pdb(struc, save_path, cofactors = [], chain_selection = 'A'):
+        structure = PandasPdb().read_pdb(struc)
         atoms = structure.df['ATOM'].copy()
         hetatms = structure.df['HETATM'].copy()
         atoms = atoms.loc[atoms['chain_id'] == chain_selection,:]
@@ -85,14 +101,14 @@ class pdb_fns:
         structure.to_pdb(save_path)
         return save_path
 
-    def get_seq(pdb_path):
-        structure = PandasPdb().read_pdb(pdb_path)
+    def get_seq(struc):
+        structure = PandasPdb().read_pdb(struc)
         sequences = structure.amino3to1() # cols = ['chain_id', 'residue_name']
         seqs = [''.join(sequences.loc[sequences['chain_id'] == i,'residue_name'].to_list()) for i in sequences['chain_id'].unique()]
         return seqs[0] if len(seqs) == 1 else seqs
 
-    def draw_box(pdb_path, key_sites):
-        receptor = PandasPdb().read_pdb(pdb_path)
+    def draw_box(struc, key_sites):
+        receptor = PandasPdb().read_pdb(struc)
         df = receptor.df['ATOM']
         target_site = df.loc[df['residue_number'].isin(key_sites),:]
         coords = target_site.loc[:,['x_coord','y_coord','z_coord']]
@@ -198,15 +214,20 @@ class vina:
         return pd.DataFrame(table)
 
     class results:
+        '''
+        poses & score df
+        '''
         def __init__(self, poses, scores):
-            self.poses = [mol(i) for i in poses]
+            self.poses = {int(re.findall('\d+',os.path.basename(i))[0])\
+                    :mol(i) for i in poses}
             self.scores = scores.astype(float)
-            self.dictionary = {os.path.basename(i.pdb_path):{'mol':i, 'affinity':j} for i,j in zip(self.poses, self.scores['affinity (kcal/mol)'])}
+            self.dictionary = {os.path.basename(i.struc):{'mol':i, 'affinity':j} for i,j in zip(self.poses.values(), self.scores['affinity (kcal/mol)'])}
         def save(self, save_path):
             os.makedirs(save_path, exist_ok = True)
             self.scores.to_csv(os.path.join(save_path, 'scores.csv'))
             for i in self.poses:
-                i.save(os.path.join(save_path, os.path.basename(i.pdb_path)))
+                pose_i = self.poses[i]
+                pose_i.save(os.path.join(save_path, os.path.basename(pose_i.struc)))
             self.receptor.save(os.path.join(save_path, 'receptor.pdb'))
 
 class utils:

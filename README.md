@@ -29,7 +29,7 @@ p.save('new_structure.pdb')
 
 results = p.dock('CCCCCCCCCCCC=O') # returns VINA score pandas.DataFrame
 
-p.save_docking_results('docking_results') # save .pdb structures in new dir docking_results
+results = p.save('docking_results') # save .pdb structures in new dir docking_results
 ```
 
 # install from command line

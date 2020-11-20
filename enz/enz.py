@@ -88,7 +88,6 @@ class protein(mol):
                     save_path = save_path,
                     cofactors = self.cofactors,
                     target_residues = target_residues)
-        results.receptor = self
         return results
 
 class pdb_fns:
@@ -185,9 +184,10 @@ class vina:
         p1 = subprocess.check_output(args_list_vina)
         
         # create results object
+        # clean_receptor_pdb to pdb
         docking_scores = vina.extract_scores(p1.decode())
         poses = vina.vina_split(raw_vina_results, vina_split_executable)
-        results = vina.results([os.path.join(poses, i) for i in os.listdir(poses)], docking_scores)
+        results = vina.results(clean_receptor_pdb, [os.path.join(poses, i) for i in os.listdir(poses)], docking_scores)
         
         return results
 
@@ -221,9 +221,10 @@ class vina:
         '''
         poses & score df
         '''
-        def __init__(self, poses, scores):
+        def __init__(self, receptor, poses, scores):
             self.poses = {int(re.findall('\d+',os.path.basename(i))[0])\
                     :mol(i) for i in poses}
+            self.receptor = receptor # path to clean pdb
             self.scores = scores.astype(float)
             self.dictionary = {os.path.basename(i.struc):{'mol':i, 'affinity':j} for i,j in zip(self.poses.values(), self.scores['affinity (kcal/mol)'])}
         def save(self, save_path):
@@ -232,7 +233,10 @@ class vina:
             for i in self.poses:
                 pose_i = self.poses[i]
                 pose_i.save(os.path.join(save_path, os.path.basename(pose_i.struc)))
-            self.receptor.save(os.path.join(save_path, 'receptor.pdb'))
+            # saves pdb
+            shutil.copyfile(self.receptor, os.path.join(save_path, 'clean_receptor.pdb'))
+
+
 
 class utils:
     def aln(s1, s2):

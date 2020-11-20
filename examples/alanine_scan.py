@@ -1,6 +1,7 @@
 import enz
 import numpy as np
 import pandas as pd
+from tqdm import tqdm # progress bar
 
 BM3_WT = 'MTIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRLIKEACDESRFDKNLSQALKFVRDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQKWERLNADEHIEVPEDMTRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMVRALDEAMNKLQRANPDDPAYDENKRQFQEDIKVMNDLVDKIIADRKASGEQSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTSGLLSFALYFLVKNPHVLQKAAEEAARVLVDPVPSYKQVKQLKYVGMVLNEALRLWPTAPAFSLYAKEDTVLGGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPERFENPSAIPQHAFKPFGNGQRACIGQQFALHEATLVLGMMLKHFDFEDHTNYELDIKETLTLKPEGFVVKAKSKKIPLGGIPSPSTEQSAKKVRK*'
 
@@ -24,9 +25,9 @@ def score(protein, results):
 def main():
     df = pd.DataFrame([], columns=['mutation','score'])
 
-    for i in [75,87,263,181,188]:
+    for i in tqdm([75,87,263,181,188]):
         p = enz.protein('../data/4key.pdb', seq = BM3_WT, cofactors = ['HEM'])
-        r = p.dock('CCCCCC=CCC=CCC=CCC=CCCCC(=O)O', target_residues=[400,49,181,330,262]) # arachidonic acid, target active site
+        r = p.dock('CCCCCC=CCC=CCC=CCC=CCCCC(=O)O', target_residues=[400,49,181,330,262]) # arachidonic acid, active site
         r.save(f'bm3_{p.seq[i]}{i}A') # eg bm3_L75A
         df.append(pd.DataFrame([i, score(p, r)], columns = ['mutation','score']))
     df.to_csv('alanine-scan.csv', index=False)

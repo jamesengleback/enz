@@ -4,6 +4,7 @@ import shutil
 from distutils.spawn import find_executable
 import subprocess
 import re
+from itertools import chain
 
 import pandas as pd
 
@@ -173,12 +174,10 @@ class vina:
                     '--ligand':ligand_pdbqt,
                     '--out':raw_vina_results,
                     '--exhaustiveness':exhaustiveness}
+        
         args.update(pdb_fns.draw_box(clean_receptor_pdb, target_residues)) # add box dims to args
 
-        args_list_vina = [vina_executable]
-        for i in args:
-            args_list_vina.append(i)
-            args_list_vina.append(str(args[i]))
+        args_list_vina = [vina_executable] + [str(i) for i in chain.from_iterable(args.items())]
 
         # execute
         p1 = subprocess.check_output(args_list_vina)
@@ -255,7 +254,6 @@ def test():
     #p.mutate(82,'F')
     #p.refold()
     r = p.dock(smiles, target_residues = [82,87,400,188,181,263])
-    print(r)
     r.save('test')
 if __name__ == '__main__':
     test()

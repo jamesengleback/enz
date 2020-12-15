@@ -139,7 +139,7 @@ class obabel_fns:
         m = pybel.readstring('smi',smiles)
         m.addh()
         m.make3D()
-        m.write('pdbqt',save_path)
+        m.write('pdbqt',save_path, overwrite=True)
         return save_path
 
     def pdbqt_to_pdb(pdbqt, save_path):
@@ -147,7 +147,7 @@ class obabel_fns:
         assert len(m) == 1
         m = m[0]
         # already 3d
-        m.write('pdb', save_path)
+        m.write('pdb', save_path, overwrite=True)
 
 
 class vina:

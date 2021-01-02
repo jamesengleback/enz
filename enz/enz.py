@@ -70,7 +70,7 @@ class protein(mol):
         self.seq = ''.join(seq)
     
     def refold(self):
-        aln1, aln2 = utils.aln(self.pdb_seq, self.seq)
+        aln1, aln2 = utils.aln(self.seq, self.pdb_seq)
         mutations = utils.diff(aln1, aln2)
         global PYROSETTA_INIT
         if  not PYROSETTA_INIT:
@@ -243,18 +243,25 @@ class utils:
         return aln1, aln2
 
     def diff(s1,s2):
-        return {i:{'from':x, 'to':y} for i, (x,y) in enumerate(zip(s1,s2)) if x != y and x != '-' and y != '-'}
+        # s1 - canonical seq
+        # s2 - pdb seq
+        # offset needed to map aligned positions to pyrosetta positions
+        # todo: test where len(s1) < len(s2)
+        offset = lambda s, idx : sum([i == '-' for i in s[:idx]])
+        return {i - offset(s2,i):{'from':x, 'to':y} for i, (x,y) in enumerate(zip(s2,s1)) if x != y and x != '-' and y != '-'}
 
 
 def test():
-    bmw_wt = 'TIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRLIKEACDESRFDKNLSQALKFVRDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQKWERLNADEHIEVPEDMTRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMVRALDEAMNKLQRANPDDPAYDENKRQFQEDIKVMNDLVDKIIADRKASGEQSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTSGLLSFALYFLVKNPHVLQKAAEEAARVLVDPVPSYKQVKQLKYVGMVLNEALRLWPTAPAFSLYAKEDTVLGGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPERFENPSAIPQHAFKPFGNGQRACIGQQFALHEATLVLGMMLKHFDFEDHTNYELDIKETLTLKPEGFVVKAKSKKIPLGGIPSPSTEQSAKKVRK*'
+    bmw_wt = 'MIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRLIKEACDESRFDKNLSQALKFVRDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQKWERLNADEHIEVPEDMTRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMVRALDEAMNKLQRANPDDPAYDENKRQFQEDIKVMNDLVDKIIADRKASGEQSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTSGLLSFALYFLVKNPHVLQKAAEEAARVLVDPVPSYKQVKQLKYVGMVLNEALRLWPTAPAFSLYAKEDTVLGGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPERFENPSAIPQHAFKPFGNGQRACIGQQFALHEATLVLGMMLKHFDFEDHTNYELDIKETLTLKPEGFVVKAKSKKIPLGGIPSPSTEQSAKKVRK*'
     path = '../data/4key.pdb'
     smiles = 'CCCCCCCC=O'
     p = protein(path, cofactors = ['HEM'], seq=bmw_wt)
-    #p.mutate(82,'F')
-    #p.refold()
-    r = p.dock(smiles, target_residues = [82,87,400,188,181,263])
-    r.save('test')
+    for i in [75,82, 83, 84, 85, 86, 87]:
+        p.mutate(i,'W')
+    p.refold()
+    p.save('tmp.pdb')
+    #r = p.dock(smiles, target_residues = [82,87,400,188,181,263])
+    #r.save('test')
 if __name__ == '__main__':
     test()
 

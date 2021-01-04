@@ -244,7 +244,7 @@ class utils:
         # offset needed to map aligned positions to pyrosetta positions
         # todo: test where len(s1) < len(s2)
         offset = lambda s, idx : sum([i == '-' for i in s[:idx]])
-        return {i - offset(s2,i):{'from':x, 'to':y} for i, (x,y) in enumerate(zip(s2,s1)) if x != y and x != '-' and y != '-'}
+        return {i - offset(s2,i):{'from':x, 'to':y} for i, (x,y) in enumerate(zip(s2,s1) ,1) if x != y and x != '-' and y != '-'}
 
 
 def test():

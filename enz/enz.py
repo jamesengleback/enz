@@ -19,10 +19,6 @@ from pyrosetta.toolbox import mutate_residue
 PYROSETTA_INIT = False
 pybel.ob.obErrorLog.SetOutputLevel(0)
 
-'''
-todo 
-  - results object could be simpler
-'''
 class mol:
     '''
     protein & results poses inherit from this class
@@ -248,7 +244,7 @@ class utils:
         # offset needed to map aligned positions to pyrosetta positions
         # todo: test where len(s1) < len(s2)
         offset = lambda s, idx : sum([i == '-' for i in s[:idx]])
-        return {i - offset(s2,i):{'from':x, 'to':y} for i, (x,y) in enumerate(zip(s2,s1),1) if x != y and x != '-' and y != '-'}
+        return {i - offset(s2,i):{'from':x, 'to':y} for i, (x,y) in enumerate(zip(s2,s1)) if x != y and x != '-' and y != '-'}
 
 
 def test():
@@ -256,7 +252,7 @@ def test():
     path = '../data/4key.pdb'
     smiles = 'CCCCCCCC=O'
     p = protein(path, cofactors = ['HEM'], seq=bmw_wt)
-    for i in [75,82, 83, 84, 85, 86, 87]:
+    for i in [75,82, 83, 84, 85, 86, 87, 188, 330]:
         p.mutate(i,'W')
     p.refold()
     p.save('tmp.pdb')

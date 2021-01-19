@@ -77,14 +77,19 @@ class protein(mol):
             mutate_residue(self.pose, i, mutations[i]['to'], pack_radius = 5.0)
         self.pose.dump_pdb(self.struc)
     
-    def dock(self, smiles, save_path = None, target_residues = None):
+    def dock(self, 
+            smiles, 
+            save_path = None,
+            target_residues = None,
+            exhaustiveness = 8):
         if target_residues == None:
             target_residues = self.key_sites
         results = vina.dock(self.struc,
                     smiles,
                     save_path = save_path,
                     cofactors = self.cofactors,
-                    target_residues = target_residues)
+                    target_residues = target_residues,
+                    exhaustiveness = exhaustiveness)
         return results
 
 class pdb_fns:
@@ -133,6 +138,7 @@ class obabel_fns:
 
     def smiles_to_pdbqt(smiles, save_path):
         m = pybel.readstring('smi',smiles)
+        m.OBMol.StripSalts()
         m.addh()
         m.make3D()
         m.write('pdbqt',save_path, overwrite=True)
@@ -248,10 +254,10 @@ class utils:
 
 
 def test():
-    bmw_wt = 'MIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRLIKEACDESRFDKNLSQALKFVRDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQKWERLNADEHIEVPEDMTRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMVRALDEAMNKLQRANPDDPAYDENKRQFQEDIKVMNDLVDKIIADRKASGEQSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTSGLLSFALYFLVKNPHVLQKAAEEAARVLVDPVPSYKQVKQLKYVGMVLNEALRLWPTAPAFSLYAKEDTVLGGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPERFENPSAIPQHAFKPFGNGQRACIGQQFALHEATLVLGMMLKHFDFEDHTNYELDIKETLTLKPEGFVVKAKSKKIPLGGIPSPSTEQSAKKVRK*'
+    bm3_wt = 'MIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRLIKEACDESRFDKNLSQALKFVRDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQKWERLNADEHIEVPEDMTRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMVRALDEAMNKLQRANPDDPAYDENKRQFQEDIKVMNDLVDKIIADRKASGEQSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTSGLLSFALYFLVKNPHVLQKAAEEAARVLVDPVPSYKQVKQLKYVGMVLNEALRLWPTAPAFSLYAKEDTVLGGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPERFENPSAIPQHAFKPFGNGQRACIGQQFALHEATLVLGMMLKHFDFEDHTNYELDIKETLTLKPEGFVVKAKSKKIPLGGIPSPSTEQSAKKVRK*'
     path = '../data/4key.pdb'
     smiles = 'CCCCCCCC=O'
-    p = protein(path, cofactors = ['HEM'], seq=bmw_wt)
+    p = protein(path, cofactors = ['HEM'], seq=bm3_wt)
     for i in [75,82, 83, 84, 85, 86, 87, 188, 330]:
         p.mutate(i,'W')
     p.refold()

@@ -72,10 +72,10 @@ class protein(mol):
         if  not PYROSETTA_INIT:
             pyrosetta_init(silent=True)
             PYROSETTA_INIT = True
-        self.pose = pose_from_pdb(self.struc) # pyrosetta
+        pose = pose_from_pdb(self.struc) # pyrosetta
         for i in mutations:
-            mutate_residue(self.pose, i, mutations[i]['to'], pack_radius = 5.0)
-        self.pose.dump_pdb(self.struc)
+            mutate_residue(pose, i, mutations[i]['to'].upper(), pack_radius = 5.0)
+        pose.dump_file(self.struc)
     
     def dock(self, 
             smiles, 

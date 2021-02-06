@@ -65,7 +65,7 @@ class protein(mol):
         seq[position] = aa
         self.seq = ''.join(seq)
     
-    def refold(self):
+    def refold(self, pack_radius = 5.0):
         aln1, aln2 = utils.aln(self.seq, self.pdb_seq)
         mutations = utils.diff(aln1, aln2)
         global PYROSETTA_INIT
@@ -74,7 +74,7 @@ class protein(mol):
             PYROSETTA_INIT = True
         pose = pose_from_pdb(self.struc) # pyrosetta
         for i in mutations:
-            mutate_residue(pose, i, mutations[i]['to'].upper(), pack_radius = 5.0)
+            mutate_residue(pose, i, mutations[i]['to'].upper(), pack_radius = float(pack_radius))
         pose.dump_file(self.struc)
     
     def dock(self, 

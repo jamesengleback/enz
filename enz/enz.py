@@ -16,6 +16,7 @@ from pyrosetta import pose_from_pdb
 from pyrosetta import init as pyrosetta_init
 from pyrosetta.toolbox import mutate_residue
 
+
 PYROSETTA_INIT = False
 pybel.ob.obErrorLog.SetOutputLevel(0)
 
@@ -28,7 +29,9 @@ class mol:
     @property
     def df(self):
         data = PandasPdb().read_pdb(self.struc)
-        return data.df['ATOM'].append(data.df['HETATM']) # all atoms
+        df = data.df['ATOM'].append(data.df['HETATM']) # all atoms
+        return df[['element_symbol', 'residue_number', 'residue_name', 'atom_name', 
+            'atom_number', 'x_coord', 'y_coord', 'z_coord']]
     def save(self, save_path):
         shutil.copyfile(self.struc, save_path)
 
@@ -68,14 +71,7 @@ class protein(mol):
     def refold(self, pack_radius = 5.0):
         aln1, aln2 = utils.aln(self.seq, self.pdb_seq)
         mutations = utils.diff(aln1, aln2)
-        global PYROSETTA_INIT
-        if  not PYROSETTA_INIT:
-            pyrosetta_init(silent=True)
-            PYROSETTA_INIT = True
-        pose = pose_from_pdb(self.struc) # pyrosetta
-        for i in mutations:
-            mutate_residue(pose, i, mutations[i]['to'].upper(), pack_radius = float(pack_radius))
-        pose.dump_file(self.struc)
+        self.struc = folds.fold(self.struc, mutations, pack_radius = 5)
     
     def dock(self, 
             smiles, 
@@ -93,7 +89,11 @@ class protein(mol):
         return results
 
 class pdb_fns:
-    def clean_pdb(struc, save_path, cofactors = [], chain_selection = 'A'):
+    def clean_pdb(struc,
+            save_path,
+            cofactors = [],
+            chain_selection = 'A'):
+
         structure = PandasPdb().read_pdb(struc)
         atoms = structure.df['ATOM'].copy()
         hetatms = structure.df['HETATM'].copy()
@@ -168,16 +168,21 @@ class vina:
         CACHE = tempfile.mkdtemp()
         raw_vina_results = os.path.join(CACHE, 'vina.result')
         # todo : if not clean  - check if dock from protein object
-        clean_receptor_pdb = pdb_fns.clean_pdb(receptor_pdb, os.path.join(CACHE, f'{os.path.basename(receptor_pdb)}.clean'),
-                                                                            cofactors = cofactors)
-        receptor_pdbqt = obabel_fns.pdb_to_pdbqt(clean_receptor_pdb, os.path.join(CACHE,'receptor.pdbqt'))
-        ligand_pdbqt = obabel_fns.smiles_to_pdbqt(smiles, os.path.join(CACHE,'ligand.pdbqt'))
+        clean_receptor_pdb = pdb_fns.clean_pdb(receptor_pdb,
+                os.path.join(CACHE,
+                    f'{os.path.basename(receptor_pdb)}.clean'),
+                    cofactors = cofactors)
+        receptor_pdbqt = obabel_fns.pdb_to_pdbqt(clean_receptor_pdb,
+                os.path.join(CACHE,'receptor.pdbqt'))
+        ligand_pdbqt = obabel_fns.smiles_to_pdbqt(smiles,
+                os.path.join(CACHE,'ligand.pdbqt'))
         args = {'--receptor':receptor_pdbqt,
                     '--ligand':ligand_pdbqt,
                     '--out':raw_vina_results,
                     '--exhaustiveness':exhaustiveness}
         
-        args.update(pdb_fns.draw_box(clean_receptor_pdb, target_residues)) # add box dims to args
+        args.update(pdb_fns.draw_box(clean_receptor_pdb,
+            target_residues)) # add box dims to args
 
         args_list_vina = [vina_executable] + [str(i) for i in chain.from_iterable(args.items())]
 
@@ -253,17 +258,51 @@ class utils:
         return {i - offset(s2,i):{'from':x, 'to':y} for i, (x,y) in enumerate(zip(s2,s1) ,1) if x != y and x != '-' and y != '-'}
 
 
-def test():
-    bm3_wt = 'MIKEMPQPKTFGELKNLPLLNTDKPVQALMKIADELGEIFKFEAPGRVTRYLSSQRLIKEACDESRFDKNLSQALKFVRDFAGDGLFTSWTHEKNWKKAHNILLPSFSQQAMKGYHAMMVDIAVQLVQKWERLNADEHIEVPEDMTRLTLDTIGLCGFNYRFNSFYRDQPHPFITSMVRALDEAMNKLQRANPDDPAYDENKRQFQEDIKVMNDLVDKIIADRKASGEQSDDLLTHMLNGKDPETGEPLDDENIRYQIITFLIAGHETTSGLLSFALYFLVKNPHVLQKAAEEAARVLVDPVPSYKQVKQLKYVGMVLNEALRLWPTAPAFSLYAKEDTVLGGEYPLEKGDELMVLIPQLHRDKTIWGDDVEEFRPERFENPSAIPQHAFKPFGNGQRACIGQQFALHEATLVLGMMLKHFDFEDHTNYELDIKETLTLKPEGFVVKAKSKKIPLGGIPSPSTEQSAKKVRK*'
-    path = '../data/4key.pdb'
-    smiles = 'CCCCCCCC=O'
-    p = protein(path, cofactors = ['HEM'], seq=bm3_wt)
-    for i in [75,82, 83, 84, 85, 86, 87, 188, 330]:
-        p.mutate(i,'W')
-    p.refold()
-    p.save('tmp.pdb')
-    #r = p.dock(smiles, target_residues = [82,87,400,188,181,263])
-    #r.save('test')
-if __name__ == '__main__':
-    test()
+
+PYROSETTA_INIT = False
+
+class folds:
+    def init():
+        global PYROSETTA_INIT
+        if  not PYROSETTA_INIT:
+            pyrosetta_init(silent=True)
+            PYROSETTA_INIT = True
+
+    def getpose(pdb):
+        return pose_from_pdb(pdb)
+
+    def savepose(pose):
+        tmp = tempfile.mktemp('pdb')
+        pose.dump_file(tmp)
+        return tmp
+
+    def fold(pdb, mutation_dict, pack_radius = 5):
+        folds.init() 
+        pose = folds.getpose(pdb)
+        pose = folds.fold_repack_mutate(pose, mutation_dict, pack_radius)
+        return folds.savepose(pose) # returns tempfile path
+
+    def fold_repack_mutate(pose, mutation_dict, pack_radius = 5):
+
+        for i in mutation_dict:
+            mutate_residue(pose, i,
+                            mutation_dict[i].upper(),
+                            pack_radius = float(pack_radius))
+        return pose
+
+    def fold_ccd(pose, mutation_dict):
+        folds.init()
+        def detect_loops(pose):
+            # phi psi
+            phipsi = [[pose.phi(i), pose.psi(i)] for i, _ in enumerate(pose.sequence(), 1)]
+            print(phipsi)
+        def ccd_loop(pos):
+            pass
+        loops = detect_loops(pose)
+        loops = [] # delet
+        for i in mutation_dict:
+            if i in loops:
+                ccd_loop(i)
+        return pose
+
 

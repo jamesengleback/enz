@@ -236,9 +236,9 @@ class vina:
         def save(self, save_path):
             os.makedirs(save_path, exist_ok = True)
             self.scores.to_csv(os.path.join(save_path, 'scores.csv'))
-            for i in self.poses:
-                pose_i = self.poses[i]
-                pose_i.save(os.path.join(save_path, os.path.basename(pose_i.struc)))
+            for i, j in enumerate(self.poses, 1):
+                pose_i = self.poses[j]
+                pose_i.save(os.path.join(save_path, f'mode{i}.pdb'))
             # saves pdb
             shutil.copyfile(self.receptor, os.path.join(save_path, 'clean_receptor.pdb'))
 
@@ -285,8 +285,9 @@ class folds:
     def fold_repack_mutate(pose, mutation_dict, pack_radius = 5):
 
         for i in mutation_dict:
+            print(i, mutation_dict[i])
             mutate_residue(pose, i,
-                            mutation_dict[i].upper(),
+                            mutation_dict[i]['to'].upper(),
                             pack_radius = float(pack_radius))
         return pose
 

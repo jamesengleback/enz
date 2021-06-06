@@ -39,7 +39,7 @@ class mol:
 class protein(mol):
     '''
     stores clean protein sequence & structure
-    cleaning removes waters and hetatm residues not in cofactors
+    cleaning removes waters and hetatm residues not in keep
     used for mutant structre prediction and small molecule docking
     example:
     >>> import enz
@@ -48,18 +48,18 @@ class protein(mol):
     >>> for i in [75,87,330, 263]:
     >>>    p = enz.protein('enz/data/4key.pdb', seq=wt)
     >>>    p.mutate(i, 'A') # alanine scan
-    >>>    r = p.dock('CCCCCCC=O', target_residues=[82,87,330,400,51]) # specify docking site
+    >>>    r = p.dock('CCCCCCC=O', target_sites=[82,87,330,400,51]) # specify docking site
     >>>    r.save(f'bm3_{p.seq[i]}iA') # e.g. bm3_F87A
 
     '''
-    def __init__(self, struc, seq = None, cofactors = [], key_sites = []):
+    def __init__(self, struc, seq = None, keep = [], key_sites = []):
         super().__init__(struc)
         self.key_sites = key_sites
-        self.cofactors = cofactors
+        self.keep = keep
         self.CACHE = tempfile.mkdtemp()
         self.struc = pdb_fns.clean_pdb(struc = self.struc,
                     save_path = os.path.join(self.CACHE, 'clean.pdb'),
-                    cofactors = self.cofactors)
+                    keep = self.keep)
         self.pdb_seq = pdb_fns.get_seq(self.struc)
         self.seq = self.pdb_seq if seq == None else seq
 
@@ -76,30 +76,32 @@ class protein(mol):
     def dock(self, 
             smiles, 
             save_path = None,
-            target_residues = None,
+            target_sites = None,
             exhaustiveness = 8):
-        if target_residues == None:
-            target_residues = self.key_sites
+        if target_sites == None:
+            target_sites = self.key_sites
         results = vina.dock(self.struc,
                     smiles,
                     save_path = save_path,
-                    cofactors = self.cofactors,
-                    target_residues = target_residues,
+                    keep = self.keep,
+                    target_sites = target_sites,
                     exhaustiveness = exhaustiveness)
         return results
 
 class pdb_fns:
     def clean_pdb(struc,
             save_path,
-            cofactors = [],
-            chain_selection = 'A'):
-
+            keep = [],
+            chain_selection = None):
         structure = PandasPdb().read_pdb(struc)
         atoms = structure.df['ATOM'].copy()
+        if len(atoms['chain_id'].unique()) > 1:
+            if chain_selection is None:
+                chain_selection = atoms.loc[atoms['chain_id']].unique()[0]
+            atoms = atoms.loc[atoms['chain_id'] == chain_selection,:]
         hetatms = structure.df['HETATM'].copy()
-        atoms = atoms.loc[atoms['chain_id'] == chain_selection,:]
         hetatms = hetatms.loc[hetatms['chain_id'] == chain_selection,:]
-        het_garbage = [i for i in hetatms['residue_name'].unique() if i not in cofactors]
+        het_garbage = [i for i in hetatms['residue_name'].unique() if i not in keep]
         hetatms = hetatms.loc[hetatms['residue_name'].isin(het_garbage) == False,:]
         structure.df['ATOM'] = atoms
         structure.df['HETATM'] = hetatms
@@ -156,13 +158,13 @@ class vina:
     def dock(receptor_pdb,
             smiles,
             save_path = None,
-            cofactors = [],
-            target_residues = [],
+            keep = [],
+            target_sites = [],
             exhaustiveness=8,
             vina_executable = find_executable('vina'),
             vina_split_executable = find_executable('vina_split')):
         # check there's a box
-        if target_residues == []:
+        if target_sites == []:
             raise Exception('no target residues selected')
 
         CACHE = tempfile.mkdtemp()
@@ -171,7 +173,7 @@ class vina:
         clean_receptor_pdb = pdb_fns.clean_pdb(receptor_pdb,
                 os.path.join(CACHE,
                     f'{os.path.basename(receptor_pdb)}.clean'),
-                    cofactors = cofactors)
+                    keep = keep)
         receptor_pdbqt = obabel_fns.pdb_to_pdbqt(clean_receptor_pdb,
                 os.path.join(CACHE,'receptor.pdbqt'))
         ligand_pdbqt = obabel_fns.smiles_to_pdbqt(smiles,
@@ -182,7 +184,7 @@ class vina:
                     '--exhaustiveness':exhaustiveness}
         
         args.update(pdb_fns.draw_box(clean_receptor_pdb,
-            target_residues)) # add box dims to args
+            target_sites)) # add box dims to args
 
         args_list_vina = [vina_executable] + [str(i) for i in chain.from_iterable(args.items())]
 

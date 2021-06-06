@@ -93,14 +93,23 @@ class pdb_fns:
             save_path,
             keep = [],
             chain_selection = None):
+        if isinstance(keep, str):
+            keep = [keep]
         structure = PandasPdb().read_pdb(struc)
         atoms = structure.df['ATOM'].copy()
-        if len(atoms['chain_id'].unique()) > 1:
-            if chain_selection is None:
-                chain_selection = atoms.loc[atoms['chain_id']].unique()[0]
-            atoms = atoms.loc[atoms['chain_id'] == chain_selection,:]
         hetatms = structure.df['HETATM'].copy()
-        hetatms = hetatms.loc[hetatms['chain_id'] == chain_selection,:]
+
+        uniq_chains = atoms['chain_id'].unique()
+        uniq_chains_het = hetatms['chain_id'].unique()
+        if chain_selection is None:
+            if len(uniq_chains) > 1:
+                chain_selection = uniq_chains[0]
+        if len(uniq_chains_het) == 1:
+            chain_selection_het = uniq_chains_het[0]
+        else:
+            chain_selection_het = chain_selection
+        atoms = atoms.loc[atoms['chain_id'] == chain_selection,:]
+        hetatms = hetatms.loc[hetatms['chain_id'] == chain_selection_het,:]
         het_garbage = [i for i in hetatms['residue_name'].unique() if i not in keep]
         hetatms = hetatms.loc[hetatms['residue_name'].isin(het_garbage) == False,:]
         structure.df['ATOM'] = atoms

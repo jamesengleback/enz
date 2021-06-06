@@ -102,8 +102,7 @@ class pdb_fns:
         uniq_chains = atoms['chain_id'].unique()
         uniq_chains_het = hetatms['chain_id'].unique()
         if chain_selection is None:
-            if len(uniq_chains) > 1:
-                chain_selection = uniq_chains[0]
+            chain_selection = uniq_chains[0]
         if len(uniq_chains_het) == 1:
             chain_selection_het = uniq_chains_het[0]
         else:

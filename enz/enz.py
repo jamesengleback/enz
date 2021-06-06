@@ -109,10 +109,16 @@ class pdb_fns:
         return save_path
 
     def get_seq(struc):
+        # from vdsl - less error prone
         structure = PandasPdb().read_pdb(struc)
         sequences = structure.amino3to1() # cols = ['chain_id', 'residue_name']
         seqs = [''.join(sequences.loc[sequences['chain_id'] == i,'residue_name'].to_list()) for i in sequences['chain_id'].unique()]
+        
         return seqs[0] if len(seqs) == 1 else seqs
+        #structure = PandasPdb().read_pdb(struc)
+        #sequences = structure.amino3to1() # cols = ['chain_id', 'residue_name']
+        #seqs = [''.join(sequences.loc[sequences['chain_id'] == i,'residue_name'].to_list()) for i in sequences['chain_id'].unique()]
+        #return seqs[0] if len(seqs) == 1 else seqs
 
     def draw_box(struc, key_sites):
         receptor = PandasPdb().read_pdb(struc)
@@ -120,7 +126,7 @@ class pdb_fns:
         target_site = df.loc[df['residue_number'].isin(key_sites),:]
         coords = target_site.loc[:,['x_coord','y_coord','z_coord']]
         center = coords.mean(axis=0)
-        sizes = (coords.max(axis=0) - coords.min(axis=0)) * 1.2
+        sizes = (coords.max(axis=0) - coords.min(axis=0)) + 5
         box = {'--center_x':center['x_coord'],
                 '--center_y':center['y_coord'],
                 '--center_z':center['z_coord'],

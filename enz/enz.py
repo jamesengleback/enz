@@ -56,7 +56,7 @@ class protein(mol):
         super().__init__(struc)
         self.key_sites = key_sites
         self.keep = keep
-        self.CACHE = tempfile.mkdtemp()
+        self.CACHE = tempfile.mkdtemp(suffix='_enz')
         self.struc = pdb_fns.clean_pdb(struc = self.struc,
                     save_path = os.path.join(self.CACHE, 'clean.pdb'),
                     keep = self.keep)
@@ -181,7 +181,7 @@ class vina:
         if target_sites == []:
             raise Exception('no target residues selected')
 
-        CACHE = tempfile.mkdtemp()
+        CACHE = tempfile.mkdtemp(suffix='_enz')
         raw_vina_results = os.path.join(CACHE, 'vina.result')
         # todo : if not clean  - check if dock from protein object
         clean_receptor_pdb = pdb_fns.clean_pdb(receptor_pdb,
@@ -221,7 +221,7 @@ class vina:
         results_dir = os.path.dirname(raw_vina_results)
         poses = [os.path.join(results_dir, i) for i in os.listdir(results_dir) if 'vina.result_ligand' in i]
         clean_results = os.path.join(results_dir, 'pose_pdbs')
-        os.mkdir(clean_results)
+        os.makedirs(clean_results, exist_ok=True)
         for i in poses:
             save_path = os.path.basename(i).replace('pdbqt','pdb')
             obabel_fns.pdbqt_to_pdb(i, os.path.join(clean_results, save_path))
@@ -288,7 +288,7 @@ class folds:
         return pose_from_pdb(pdb)
 
     def savepose(pose):
-        tmp = tempfile.mktemp('pdb')
+        tmp = tempfile.mktemp('_enz')
         pose.dump_file(tmp)
         return tmp
 

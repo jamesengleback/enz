@@ -52,11 +52,11 @@ class protein(mol):
     >>>    r.save(f'bm3_{p.seq[i]}iA') # e.g. bm3_F87A
 
     '''
-    def __init__(self, struc, seq = None, keep = [], key_sites = []):
+    def __init__(self, struc, seq = None, keep = [], key_sites = [], tmp_suffix=''):
         super().__init__(struc)
         self.key_sites = key_sites
         self.keep = keep
-        self.CACHE = tempfile.mkdtemp(suffix='_enz')
+        self.CACHE = tempfile.mkdtemp(suffix=f'{tmp_suffix}_enz')
         self.struc = pdb_fns.clean_pdb(struc = self.struc,
                     save_path = os.path.join(self.CACHE, 'clean.pdb'),
                     keep = self.keep)

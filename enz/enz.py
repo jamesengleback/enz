@@ -13,14 +13,18 @@ import nwalign3 as nw
 from openbabel import pybel
 
 from pyrosetta import pose_from_pdb
+from pyrosetta import logger as pyrosetta_logger
+from pyrosetta import logging as pyrosetta_logging
 from pyrosetta import init as pyrosetta_init
 from pyrosetta.toolbox import mutate_residue
 
 
 PYROSETTA_INIT = False
+pyrosetta_logger.setLevel(0)
+pyrosetta_logging.disable()
 pybel.ob.obErrorLog.SetOutputLevel(0)
 
-class mol:
+class Mol:
     '''
     protein & results poses inherit from this class
     '''
@@ -36,7 +40,7 @@ class mol:
         shutil.copyfile(self.struc, save_path)
 
 
-class protein(mol):
+class Protein(Mol):
     '''
     stores clean protein sequence & structure
     cleaning removes waters and hetatm residues not in keep
@@ -46,7 +50,7 @@ class protein(mol):
     >>> wt = 'MTIKEM...'
     >>> 
     >>> for i in [75,87,330, 263]:
-    >>>    p = enz.protein('enz/data/4key.pdb', seq=wt)
+    >>>    p = enz.Protein('enz/data/4key.pdb', seq=wt)
     >>>    p.mutate(i, 'A') # alanine scan
     >>>    r = p.dock('CCCCCCC=O', target_sites=[82,87,330,400,51]) # specify docking site
     >>>    r.save(f'bm3_{p.seq[i]}iA') # e.g. bm3_F87A
@@ -239,13 +243,13 @@ class vina:
                 table.append(dict(zip(['mode','affinity (kcal/mol)', 'dist from best mode - rmsd - ub','dist from best mode - lb'], items)))
         return pd.DataFrame(table)
 
-    class results:
+    class Results:
         '''
         poses & score df
         '''
         def __init__(self, receptor, poses, scores):
             self.poses = {int(re.findall('\d+',os.path.basename(i))[0])\
-                    :mol(i) for i in poses}
+                    :Mol(i) for i in poses}
             self.receptor = receptor # path to clean pdb
             self.scores = scores.astype(float)
             self.dictionary = {os.path.basename(i.struc):{'mol':i, 'affinity':j} for i,j in zip(self.poses.values(), self.scores['affinity (kcal/mol)'])}
@@ -301,7 +305,6 @@ class folds:
     def fold_repack_mutate(pose, mutation_dict, pack_radius = 5):
 
         for i in mutation_dict:
-            print(i, mutation_dict[i])
             mutate_residue(pose, i,
                             mutation_dict[i]['to'].upper(),
                             pack_radius = float(pack_radius))

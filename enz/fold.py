@@ -1,3 +1,5 @@
+import sys
+import os
 import tempfile
 
 from pyrosetta import pose_from_pdb
@@ -5,6 +7,9 @@ from pyrosetta import logger as pyrosetta_logger
 from pyrosetta import logging as pyrosetta_logging
 from pyrosetta import init as pyrosetta_init
 from pyrosetta.toolbox import mutate_residue
+
+import logging
+logging.getLogger("pyrosetta").setLevel(0)
 
 PYROSETTA_INIT = False
 
@@ -20,9 +25,11 @@ def fold(pdb,
     '''
     main method, combines functions
     '''
+    sys.stderr = open(os.devnull, 'w')
     init() 
     pose = getpose(pdb)
     pose = fold_repack_mutate(pose, mutation_dict, pack_radius)
+    sys.stdout = sys.__stdout__
     return savepose(pose) # returns tempfile path
 
 def getpose(pdb):

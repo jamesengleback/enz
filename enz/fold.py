@@ -14,6 +14,17 @@ def init():
         pyrosetta_init(silent=True)
         PYROSETTA_INIT = True
 
+def fold(pdb, 
+         mutation_dict, 
+         pack_radius = 5):
+    '''
+    main method, combines functions
+    '''
+    init() 
+    pose = getpose(pdb)
+    pose = fold_repack_mutate(pose, mutation_dict, pack_radius)
+    return savepose(pose) # returns tempfile path
+
 def getpose(pdb):
     return pose_from_pdb(pdb)
 
@@ -21,17 +32,6 @@ def savepose(pose):
     tmp = tempfile.mktemp('_enz')
     pose.dump_file(tmp)
     return tmp
-
-def fold(pdb, 
-         mutation_dict, 
-         pack_radius = 5):
-    '''
-    main method
-    '''
-    init() 
-    pose = getpose(pdb)
-    pose = fold_repack_mutate(pose, mutation_dict, pack_radius)
-    return savepose(pose) # returns tempfile path
 
 def fold_repack_mutate(pose, mutation_dict, pack_radius = 5):
 
@@ -55,6 +55,3 @@ def fold_ccd(pose, mutation_dict):
         if i in loops:
             ccd_loop(i)
     return pose
-
-
-

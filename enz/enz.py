@@ -1,36 +1,21 @@
 import tempfile
 import os
 import shutil
-from distutils.spawn import find_executable
-import subprocess
-import re
-from itertools import chain
+from pprint import pformat
 
 import pandas as pd
 
 from biopandas.pdb import PandasPdb
-import nwalign3 as nw
-from openbabel import pybel
-
-from pyrosetta import pose_from_pdb
-from pyrosetta import logger as pyrosetta_logger
-from pyrosetta import logging as pyrosetta_logging
-from pyrosetta import init as pyrosetta_init
-from pyrosetta.toolbox import mutate_residue
 
 import enz.utils as utils
 from enz.utils import pdb_fns, obabel_fns, aln, diff
 import enz.vina as vina
 import enz.fold as fold
 
-PYROSETTA_INIT = False
-pyrosetta_logger.setLevel(0)
-pyrosetta_logging.disable()
-pybel.ob.obErrorLog.SetOutputLevel(0)
 
 class Mol:
     '''
-    protein & results poses inherit from this class
+    Protein & Results poses inherit from this class
     '''
     def __init__(self, 
                  struc):
@@ -44,7 +29,7 @@ class Mol:
     def save(self, save_path):
         shutil.copyfile(self.struc, save_path)
     def __repr__(self):
-        return f'enz.Mol {self.struc}'
+        return pformat(f'enz.Mol {self.struc}')
 
 
 class Protein(Mol):
@@ -66,8 +51,8 @@ class Protein(Mol):
     '''
     def __init__(self, 
                  struc, 
-                 seq = None, 
-                 keep = [], 
+                 seq=None, 
+                 keep=[], 
                  tmp_suffix=''):
         super().__init__(struc)
         self.keep = keep
@@ -78,7 +63,9 @@ class Protein(Mol):
         self.pdb_seq = pdb_fns.get_seq(self.struc)
         self.seq = self.pdb_seq if seq == None else seq
 
-    def mutate(self, position, aa):
+    def mutate(self, 
+               position, 
+               aa):
         seq = list(self.seq)
         seq[position] = aa
         self.seq = ''.join(seq)
@@ -89,15 +76,17 @@ class Protein(Mol):
         self.struc = fold.fold(self.struc, mutations, pack_radius = 5)
     
     def dock(self, 
-            smiles, 
-            save_path = None,
-            target_sites = None,
-            exhaustiveness = 8):
+             smiles, 
+             save_path=None,
+             target_sites=None,
+             exhaustiveness=8):
         return vina.dock(self.struc,
                          smiles,
                          save_path=save_path,
                          keep=self.keep,
                          target_sites=target_sites,
                          exhaustiveness=exhaustiveness)
+    def __repr__(self):
+        return pformat(f'enz.Protein {self.struc}')
 
 

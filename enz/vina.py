@@ -5,6 +5,7 @@ from distutils.spawn import find_executable
 import subprocess
 import re
 from itertools import chain
+from pprint import pformat
 
 import pandas as pd
 
@@ -93,22 +94,26 @@ class Pose:
                  **kwargs
                  ):
         self.__dict__ = {**self.__dict__, **kwargs}
+
 class Results:
     '''
     poses & score df
     '''
     def __init__(self, 
-                 receptor, 
-                 poses, 
-                 vina_scores
+                 receptor,    # pdb path
+                 poses,       # list of pdb paths
+                 vina_scores, # pd.DataFrame from vina_split (text) | extract_scores
                  ):
+        # path to clean pdb (protein)
+        self.receptor = receptor 
+        # get mode number from filename
+        get_no = lambda path : re.findall('\d+', os.path.basename(path))[0]
+        # poses {'mode1':enz.Mol ...
         self.poses =  {f"mode{get_no(i)}":enz.Mol(i) for i in poses}
-        self.receptor = receptor # path to clean pdb
         self.vina_scores = vina_scores.astype(float)
-        get_no = lambda path : re.findall('\d+', os.path.basename(path)) # re.findall('\d+',os.path.basename(path))[0]
-        self.dictionary = {f"mode{get_no(i)}":{'mol':i, 'affinity':j} \
-                for i,j in zip(self.poses.values(), 
-                               self.vina_scores['affinity (kcal/mol)'])}
+        self.dictionary = {f"mode{get_no(i.struc)}":{'mol':i, 'affinity':j} \
+                           for i,j in zip(self.poses.values(), 
+                                          self.vina_scores['affinity (kcal/mol)'])}
     def save(self, save_path):
         os.makedirs(save_path, exist_ok = True)
         self.vina_scores.to_csv(os.path.join(save_path, 'scores.csv'))
@@ -122,4 +127,4 @@ class Results:
     def __getitem__(self, idx):
         return list(self.dictionary.values())[idx] 
     def __repr__(self):
-        return f'enz.Results {self.poses}'
+        return pformat(f'enz.Results {self.poses}')

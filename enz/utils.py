@@ -12,16 +12,7 @@ from biopandas.pdb import PandasPdb
 import nwalign3 as nw
 from openbabel import pybel
 
-from pyrosetta import pose_from_pdb
-from pyrosetta import logger as pyrosetta_logger
-from pyrosetta import logging as pyrosetta_logging
-from pyrosetta import init as pyrosetta_init
-from pyrosetta.toolbox import mutate_residue
 
-
-PYROSETTA_INIT = False
-pyrosetta_logger.setLevel(0)
-pyrosetta_logging.disable()
 pybel.ob.obErrorLog.SetOutputLevel(0)
 
 class pdb_fns:

@@ -73,13 +73,14 @@ class Protein(Mol):
     def refold(self, pack_radius = 5.0):
         aln1, aln2 = utils.aln(self.seq, self.pdb_seq)
         mutations = utils.diff(aln1, aln2)
-        self.struc = fold.fold(self.struc, mutations, pack_radius = 5)
+        self.struc = fold.fold(self.struc, mutations, pack_radius=pack_radius)
     
     def dock(self, 
              smiles, 
              save_path=None,
              target_sites=None,
              exhaustiveness=8):
+
         return vina.dock(self.struc,
                          smiles,
                          save_path=save_path,
@@ -88,5 +89,4 @@ class Protein(Mol):
                          exhaustiveness=exhaustiveness)
     def __repr__(self):
         return pformat(f'enz.Protein {self.struc}')
-
 

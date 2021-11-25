@@ -9,14 +9,16 @@ from pyrosetta import init as pyrosetta_init
 from pyrosetta.toolbox import mutate_residue
 
 import logging
-logging.getLogger("pyrosetta.rosetta").setLevel(0)
+#logging.getLogger("pyrosetta.rosetta").setLevel(0)
 
 PYROSETTA_INIT = False
 
 def init():
     global PYROSETTA_INIT
-    if  not PYROSETTA_INIT:
-        pyrosetta_init(silent=True, set_logging_handler='logging')
+    if not PYROSETTA_INIT:
+        pyrosetta_init(silent=True) # loads of text output
+        # v causes threading issues????
+        #pyrosetta_init(silent=True, set_logging_handler='logging') # actually silent
         PYROSETTA_INIT = True
 
 def fold(pdb, 
